@@ -1,0 +1,478 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Gasolineras baratas en Castilla y León hoy · Repostar Barato CyL</title>
+<meta name="description" content="Precio de la gasolina y el diésel hoy en las __NTOT__ gasolineras de Castilla y León. Mapa, ranking por provincia y pueblo, actualizado cada día con datos del Ministerio.">
+<link rel="canonical" href="__URL__/">
+<!-- ADSENSE: aquí va el código de Google AdSense cuando tengas tu número de editor (ca-pub-...) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: cabecera tipo panel de precios de estación, mapa de puntos a todo el ancho, provincias en rejilla y ranking en tabla; vista aparte para coches eléctricos */
+:root{
+  --bg:#f3f5f7; --surface:#ffffff; --fg:#17212b; --muted:#5b6876; --line:#d9dfe5;
+  --accent:#0b5cad; --accent-soft:#e3eefa; --led:#ffb020; --panel:#121a22; --panel-fg:#e9eef3;
+  --good:#1d8a4e; --good-soft:#e2f4ea; --warn-soft:#fff4dc; --warn:#8a5a00;
+  --map-bg:#dfe6ec; --map-label:#4d5b69; --prov-a:#f6f8fa; --prov-b:#ecf1f5; --prov-on:#d6e6f7; --prov-line:#8796a5; --ev:#0f8f86; --ev-soft:#dff4f1;
+  --f-display:"Barlow Condensed","Arial Narrow",Arial,sans-serif;
+  --f-body:"Barlow",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-num:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0e141a; --surface:#151d25; --fg:#e6ebf0; --muted:#97a3b0; --line:#26323d;
+  --accent:#5aa2ec; --accent-soft:#16293d; --good:#4cc283; --good-soft:#12291d; --warn-soft:#2b220e; --warn:#f0c060;
+  --map-bg:#070b0f; --map-label:#9aa7b4; --prov-a:#121a22; --prov-b:#17212b; --prov-on:#16293d; --prov-line:#4a5866; --ev:#3fc7b9; --ev-soft:#0f2a28; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0e141a; --surface:#151d25; --fg:#e6ebf0; --muted:#97a3b0; --line:#26323d;
+  --accent:#5aa2ec; --accent-soft:#16293d; --good:#4cc283; --good-soft:#12291d; --warn-soft:#2b220e; --warn:#f0c060;
+  --map-bg:#070b0f; --map-label:#9aa7b4; --prov-a:#121a22; --prov-b:#17212b; --prov-on:#16293d; --prov-line:#4a5866; --ev:#3fc7b9; --ev-soft:#0f2a28; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:16px;line-height:1.5}
+.wrap{max-width:1080px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.note{background:var(--warn-soft);color:var(--warn);font-size:14px;font-weight:600}
+.note .wrap{padding-block:8px}
+header.top{background:var(--surface);border-bottom:1px solid var(--line)}
+header.top .wrap{display:flex;align-items:center;justify-content:space-between;gap:12px 20px;padding-block:14px;flex-wrap:wrap}
+.brand{font-family:var(--f-display);font-weight:700;font-size:26px;display:flex;align-items:center;gap:10px;color:inherit;text-decoration:none}
+.brand i{display:inline-grid;place-items:center;width:34px;height:34px;border-radius:8px;background:var(--accent);color:#fff;font-style:normal;font-size:18px}
+nav.menu{display:flex;gap:6px 18px;flex-wrap:wrap;font-weight:500;color:var(--muted);font-size:15px;align-items:center}
+nav.menu a{color:inherit;text-decoration:none}
+nav.menu a:hover{color:var(--accent)}
+nav.menu a.evlink{color:var(--ev);font-weight:600;border:1px solid var(--ev);border-radius:999px;padding:4px 12px}
+nav.menu a.evlink:hover{background:var(--ev-soft)}
+
+.hero{background:var(--panel);color:var(--panel-fg)}
+.hero .wrap{display:grid;grid-template-columns:1.3fr 1fr;gap:32px;padding-block:36px;align-items:center}
+.hero h1{font-family:var(--f-display);font-weight:700;font-size:clamp(34px,5vw,52px);line-height:1.02;margin:0 0 12px;text-wrap:balance}
+.hero p{margin:0;color:#aab6c2;max-width:52ch}
+.hero .upd{margin-top:16px;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:#8d99a6}
+.board{background:#000;border-radius:12px;padding:18px 20px;border:1px solid #2a3540;display:grid;gap:12px}
+.board .lbl{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:#8d99a6}
+.row-led{display:flex;justify-content:space-between;align-items:baseline;gap:12px;border-top:1px solid #1f2830;padding-top:10px}
+.row-led .fuel{font-family:var(--f-display);font-size:20px;font-weight:600;color:#dfe6ec}
+.row-led .where{font-size:13px;color:#8d99a6}
+.led{font-family:var(--f-num);font-weight:700;font-size:32px;color:var(--led);text-shadow:0 0 12px rgba(255,176,32,.35);font-variant-numeric:tabular-nums;white-space:nowrap}
+.led small{font-size:14px;color:#c48a1c;margin-left:4px}
+
+main .wrap{display:grid;gap:40px;padding-block:32px 48px}
+h2{font-family:var(--f-display);font-weight:700;font-size:30px;margin:0 0 4px;text-wrap:balance}
+.sub{color:var(--muted);margin:0 0 16px;max-width:70ch}
+.controls{display:flex;flex-wrap:wrap;gap:12px;align-items:end;margin-bottom:14px}
+.seg{display:inline-flex;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:3px;flex-wrap:wrap}
+.seg button{border:0;background:transparent;color:var(--muted);font:600 15px var(--f-body);padding:7px 14px;border-radius:999px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--accent);color:#fff}
+.field{display:grid;gap:4px;font-size:14px;color:var(--muted)}
+.field.grow{flex:1 1 220px;min-width:0}
+input[type=search],select{width:100%;font:500 16px var(--f-body);padding:9px 12px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--fg)}
+button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible,canvas:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+
+/* Mapa */
+.mapbox{position:relative;background:var(--map-bg);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.mapbox canvas{display:block;width:100%;height:clamp(340px,60vw,560px);touch-action:none;cursor:grab}
+.mapbox canvas.drag{cursor:grabbing}
+.zoom{position:absolute;right:12px;top:12px;display:grid;gap:6px}
+.zoom button{width:36px;height:36px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--fg);font:700 18px var(--f-body);cursor:pointer}
+.legend{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:14px;color:var(--muted);margin-top:10px}
+.ramp{width:180px;max-width:40vw;height:10px;border-radius:5px;background:linear-gradient(90deg,#1a9850,#a6d96a,#fee08b,#fdae61,#d73027)}
+.legend .num{font-family:var(--f-num);font-variant-numeric:tabular-nums;color:var(--fg)}
+.pick{margin-top:12px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;display:flex;gap:12px 24px;flex-wrap:wrap;align-items:baseline}
+.pick .nm{font-weight:600;font-size:17px}
+.pick .ad{color:var(--muted);font-size:14px;display:block}
+.pick .pr{font-family:var(--f-num);font-weight:700;font-size:20px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.pick .muted{color:var(--muted);font-size:14px}
+
+.provs{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px}
+.prov{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;text-align:left;cursor:pointer;font:inherit;color:inherit;display:grid;gap:3px}
+.prov:hover{border-color:var(--accent)}
+.prov[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.prov .n{font-family:var(--f-display);font-weight:600;font-size:21px}
+.prov .p{font-family:var(--f-num);font-weight:700;font-size:20px;font-variant-numeric:tabular-nums}
+.prov .m{font-size:13px;color:var(--muted)}
+
+.ad-slot{border:1px dashed var(--line);border-radius:10px;color:var(--muted);font-size:13px;text-align:center;padding-block:22px;letter-spacing:.06em;text-transform:uppercase}
+
+.tablebox{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+table{width:100%;border-collapse:collapse;min-width:640px}
+th,td{padding:11px 14px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+tr:last-child td{border-bottom:0}
+td.price{font-family:var(--f-num);font-weight:700;font-size:17px;white-space:nowrap;font-variant-numeric:tabular-nums}
+td .addr{display:block;font-size:13px;color:var(--muted)}
+td.hor{font-size:14px;color:var(--muted);max-width:220px}
+.rank{font-family:var(--f-num);color:var(--muted);font-variant-numeric:tabular-nums}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:8px;vertical-align:1px}
+.chip{display:inline-block;font-size:12px;font-weight:600;padding:2px 8px;border-radius:999px;background:var(--good-soft);color:var(--good);margin-left:6px;white-space:nowrap}
+.more{display:flex;justify-content:center;gap:12px;align-items:center;margin-top:14px;color:var(--muted);font-size:14px;flex-wrap:wrap}
+.btn{border:1px solid var(--accent);background:transparent;color:var(--accent);font:600 15px var(--f-body);padding:8px 18px;border-radius:999px;cursor:pointer}
+.btn:hover{background:var(--accent-soft)}
+.empty{padding:24px;color:var(--muted)}
+
+.evcta{display:grid;grid-template-columns:auto 1fr auto;gap:16px 20px;align-items:center;background:var(--ev-soft);border:1px solid var(--ev);border-radius:14px;padding:18px 20px;color:inherit;text-decoration:none}
+.evcta .ic{width:48px;height:48px;border-radius:12px;background:var(--ev);color:#fff;display:grid;place-items:center;font-size:24px}
+.evcta h3{font-family:var(--f-display);font-size:24px;margin:0}
+.evcta p{margin:2px 0 0;color:var(--muted)}
+.evcta .go{font-weight:600;color:var(--ev);white-space:nowrap}
+@media (max-width:560px){.evcta{grid-template-columns:auto 1fr}.evcta .go{grid-column:1/-1}}
+
+.info{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:24px}
+.info article{min-width:0}
+.info h3{font-family:var(--f-display);font-size:22px;margin:0 0 6px}
+.info p{margin:0;color:var(--muted);max-width:62ch}
+footer{border-top:1px solid var(--line);color:var(--muted);font-size:14px}
+footer a{color:inherit}
+body{margin:0}
+footer .wrap{padding-block:24px;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+
+/* Vista eléctricos */
+.evhero{background:linear-gradient(0deg,var(--ev-soft),var(--ev-soft)),var(--surface);border-bottom:1px solid var(--line)}
+.evhero .wrap{padding-block:30px;display:grid;gap:10px}
+.back{color:var(--ev);font-weight:600;text-decoration:none;font-size:15px}
+.evhero h1{font-family:var(--f-display);font-size:clamp(32px,5vw,46px);line-height:1.05;margin:0;text-wrap:balance}
+.evhero p{margin:0;color:var(--muted);max-width:68ch}
+.keys{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+.key{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px}
+.key h3{font-family:var(--f-display);font-size:21px;margin:0 0 4px}
+.key p{margin:0;color:var(--muted);font-size:15px}
+.tag{display:inline-block;font-size:12px;font-weight:600;padding:2px 8px;border-radius:999px;margin:2px 4px 2px 0;border:1px solid var(--line);color:var(--muted)}
+.tag.fast{background:var(--ev);border-color:var(--ev);color:#fff}
+.evlegend{display:flex;gap:16px;flex-wrap:wrap;font-size:14px;color:var(--muted);margin-top:10px}
+.callout{background:var(--warn-soft);color:var(--warn);border-radius:12px;padding:14px 16px;font-size:15px}
+@media (max-width:760px){.hero .wrap{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+</head>
+<body>
+
+<header class="top"><div class="wrap">
+  <a class="brand" href="#inicio"><i>⛽</i>Repostar Barato CyL</a>
+  <nav class="menu" aria-label="Secciones">
+    <a href="#mapa">Mapa</a><a href="#provincias">Provincias</a><a href="#ranking">Todas las gasolineras</a>
+    <a href="mapa.html">Mapa satélite</a>
+    <a class="evlink" href="#electrico">⚡ Coche eléctrico</a>
+  </nav>
+</div></header>
+
+<div id="viewMain">
+<section class="hero"><div class="wrap">
+  <div>
+    <h1>La gasolina más barata de Castilla y León, hoy</h1>
+    <p>Comparamos los precios de las <span id="nTot"></span> gasolineras de las nueve provincias para que sepas dónde repostar antes de salir.</p>
+    <div class="upd">Precios comunicados al Ministerio · actualizado el __FECHA__</div>
+  </div>
+  <div class="board" aria-label="Precios mínimos de la comunidad">
+    <div class="lbl">Mínimo en la comunidad</div>
+    <div class="row-led"><div><div class="fuel">Gasolina 95</div><div class="where" id="w95"></div></div><div class="led" id="l95"></div></div>
+    <div class="row-led"><div><div class="fuel">Diésel</div><div class="where" id="wdi"></div></div><div class="led" id="ldi"></div></div>
+  </div>
+</div></section>
+
+<main><div class="wrap">
+  <div>
+    <div class="controls" style="margin-bottom:0">
+      <div class="field"><span>Combustible</span>
+        <div class="seg" role="group" aria-label="Combustible">
+          <button data-f="5" aria-pressed="true">Gasolina 95</button>
+          <button data-f="6" aria-pressed="false">Diésel</button>
+          <button data-f="7" aria-pressed="false">Gasolina 98</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <section id="mapa">
+    <h2>Mapa de todas las gasolineras</h2>
+    <p class="sub">Las líneas marcan la frontera de cada provincia. Cada marcador es una gasolinera. Verde: de las más baratas de la comunidad. Rojo: de las más caras. Toca un marcador para ver su nombre y su precio, o arrastra y usa + y − para acercarte.</p>
+    <div class="mapbox">
+      <canvas id="map" tabindex="0" aria-label="Mapa de gasolineras de Castilla y León coloreadas por precio"></canvas>
+      <div class="zoom"><button id="zin" aria-label="Acercar">+</button><button id="zout" aria-label="Alejar">−</button><button id="zre" aria-label="Ver toda la comunidad" style="font-size:13px">⤢</button></div>
+    </div>
+    <div class="legend"><span>Más barata</span><span class="num" id="lgMin"></span><span class="ramp"></span><span class="num" id="lgMax"></span><span>Más cara</span><span id="lgNo"></span></div>
+    <div class="pick" id="pick"><span class="muted">Toca cualquier punto del mapa para ver la gasolinera.</span></div>
+  </section>
+
+  <!-- Hueco para anuncio de AdSense -->
+
+  <section id="provincias">
+    <h2>Precio mínimo por provincia</h2>
+    <p class="sub">Toca una provincia para ver solo sus gasolineras en el mapa y en la lista.</p>
+    <div class="provs" id="provs"></div>
+  </section>
+
+  <a class="evcta" href="#electrico">
+    <span class="ic">⚡</span>
+    <span><h3>¿Tienes coche eléctrico o híbrido enchufable?</h3><p>Mira dónde hay puntos de carga en Castilla y León y cómo funciona el pago.</p></span>
+    <span class="go">Ver puntos de carga →</span>
+  </a>
+
+  <section id="ranking">
+    <h2 id="rtitle">Todas las gasolineras</h2>
+    <p class="sub" id="rsub"></p>
+    <div class="controls">
+      <label class="field grow" for="q"><span>Buscar por pueblo o marca</span>
+        <input id="q" type="search" placeholder="Ej.: Aranda de Duero, Benavente, Repsol…" autocomplete="off">
+      </label>
+      <label class="field" for="psel"><span>Provincia</span>
+        <select id="psel"></select>
+      </label>
+    </div>
+    <div class="tablebox"><table>
+      <thead><tr><th>#</th><th>Gasolinera</th><th>Pueblo</th><th>Precio</th><th>Horario</th></tr></thead>
+      <tbody id="tb"></tbody>
+    </table></div>
+    <div class="more"><span id="count"></span><button class="btn" id="moreBtn">Ver 25 más</button></div>
+  </section>
+
+  <!-- Hueco para anuncio de AdSense -->
+
+  <section id="consejos">
+    <h2>Consejos para gastar menos</h2>
+    <p class="sub">Artículos propios que ayudan a que Google valore la web.</p>
+    <div class="info">
+      <article><h3>¿Qué día es más barato repostar?</h3><p>Los precios cambian a lo largo de la semana. Con el histórico de la web podremos mostrar qué días suelen bajar en cada provincia.</p></article>
+      <article><h3>Gasolineras en ruta por la A-6</h3><p>Una guía con la estación más barata en cada tramo entre Benavente y Ponferrada, pensada para quien viaja hacia Galicia.</p></article>
+      <article><h3>Las autonomías de bajo coste</h3><p>Las gasolineras automáticas de polígono suelen ser bastante más baratas que las de autovía. Te enseñamos a encontrarlas en el mapa.</p></article>
+    </div>
+  </section>
+</div></main>
+</div>
+
+<div id="viewEv" hidden>
+<section class="evhero"><div class="wrap">
+  <a class="back" href="#inicio">← Volver a gasolineras</a>
+  <h1>¿Tienes coche eléctrico o híbrido enchufable?</h1>
+  <p>Aquí tienes los puntos de carga públicos de Castilla y León y lo básico para entender cómo funcionan, aunque nunca hayas cargado un coche.</p>
+</div></section>
+<main><div class="wrap">
+  <section>
+    <h2>Cómo funciona cargar un coche</h2>
+    <div class="keys">
+      <div class="key"><h3>Carga normal</h3><p>Conector <strong>Type 2</strong> (o enchufe Schuko). Es lenta: sirve para dejar el coche horas aparcado, por ejemplo en un parking o un hotel.</p></div>
+      <div class="key"><h3>Carga rápida</h3><p>Conectores <strong>CCS</strong> o <strong>CHAdeMO</strong>. Son de corriente continua y recargan gran parte de la batería en menos de una hora. Son las útiles en viaje, junto a autovías.</p></div>
+      <div class="key"><h3>Híbrido enchufable</h3><p>La mayoría solo admite carga normal con Type 2. Antes de ir a un punto rápido, comprueba en el manual si tu coche tiene conector CCS.</p></div>
+      <div class="key"><h3>¿Cuánto cuesta?</h3><p>No hay un precio único como en la gasolina. Cada operador pone su tarifa, normalmente en euros por kWh, y se paga con su app o con tarjeta en el propio cargador. La rápida suele salir más cara que la normal.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Mapa de puntos de carga</h2>
+    <p class="sub">Toca un punto para ver la dirección, el operador y los conectores.</p>
+    <div class="controls" style="margin-bottom:12px">
+      <div class="field"><span>Tipo de carga</span>
+        <div class="seg" role="group" aria-label="Tipo de carga">
+          <button data-ev="all" aria-pressed="true">Todos</button>
+          <button data-ev="fast" aria-pressed="false">Solo rápida</button>
+          <button data-ev="slow" aria-pressed="false">Solo normal</button>
+        </div>
+      </div>
+    </div>
+    <div class="mapbox">
+      <canvas id="evmap" tabindex="0" aria-label="Mapa de puntos de carga de Castilla y León"></canvas>
+      <div class="zoom"><button id="ezin" aria-label="Acercar">+</button><button id="ezout" aria-label="Alejar">−</button><button id="ezre" aria-label="Ver toda la comunidad" style="font-size:13px">⤢</button></div>
+    </div>
+    <div class="evlegend"><span><span class="dot" style="background:var(--ev)"></span>Carga rápida (CCS / CHAdeMO)</span><span><span class="dot" style="background:#8a96a3"></span>Solo carga normal</span><span style="opacity:.8"><span class="dot" style="background:transparent;border:1px solid #8a96a3;width:6px;height:6px"></span>Gasolineras, como referencia</span></div>
+    <div class="pick" id="evpick"><span class="muted">Toca cualquier punto del mapa para ver el cargador.</span></div>
+  </section>
+
+  <div class="callout"><strong>Sobre los precios de carga.</strong> Este listado viene del portal de datos abiertos de la Junta de Castilla y León, que no incluye precios y se actualizó por última vez en enero de 2022, así que faltan los cargadores más nuevos. Desde 2023 los operadores de puntos de carga de 43 kW o más están obligados a comunicar su precio al Ministerio. Cuando ese dato esté disponible para descargar, lo añadiremos aquí igual que los precios de la gasolina.</div>
+
+  <section>
+    <h2 id="evtitle">Puntos de carga</h2>
+    <div class="controls">
+      <label class="field grow" for="eq"><span>Buscar por pueblo u operador</span>
+        <input id="eq" type="search" placeholder="Ej.: Benavente, Iberdrola, Wenea…" autocomplete="off">
+      </label>
+    </div>
+    <div class="tablebox"><table>
+      <thead><tr><th>Punto de carga</th><th>Dirección</th><th>Operador</th><th>Conectores</th></tr></thead>
+      <tbody id="etb"></tbody>
+    </table></div>
+  </section>
+</div></main>
+</div>
+
+<footer><div class="wrap">
+  <span>Fuentes: Ministerio para la Transición Ecológica y el Reto Demográfico (precios de carburantes) y Junta de Castilla y León (puntos de carga), datos abiertos. Web no vinculada a ninguno de los dos.</span>
+  <span><a href="aviso-legal.html">Aviso legal</a> · <a href="privacidad.html">Privacidad</a> · <a href="cookies.html">Cookies</a> · <a href="contacto.html">Contacto</a></span>
+</div></footer>
+
+<script>
+// [provincia, municipio, rótulo, dirección, horario, p95, diésel, p98 (milésimas de €), lat, lon]
+const S=__DATA__;
+// [lat, lon, nombre, dirección, operador, conectores]
+const EV=__EV__;
+const PROV=__PROV__;
+const P=["Ávila","Burgos","León","Palencia","Salamanca","Segovia","Soria","Valladolid","Zamora"];
+const FN={5:"gasolina 95",6:"diésel",7:"gasolina 98"};
+let fuel=5, prov=-1, shown=25, evMode="all";
+const $=id=>document.getElementById(id);
+const fmt=v=>(v/1000).toFixed(3).replace(".",",");
+const norm=s=>s.normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase();
+const esc=s=>s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const hor=h=>h.replace(/L-D: 24H/,"24 horas").replace(/L-D: /,"Todos los días ");
+
+/* Escala de color por percentil de precio */
+const STOPS=[[26,152,80],[166,217,106],[254,224,139],[253,174,97],[215,48,39]];
+function ramp(t){t=Math.max(0,Math.min(1,t))*(STOPS.length-1);const i=Math.min(STOPS.length-2,Math.floor(t)),f=t-i,a=STOPS[i],b=STOPS[i+1];return`rgb(${a.map((v,k)=>Math.round(v+(b[k]-v)*f)).join(",")})`}
+let rankOf=new Map(), sortedPrices=[];
+function computeRanks(){
+  const xs=S.map((s,i)=>[i,s[fuel]]).filter(x=>x[1]>0).sort((a,b)=>a[1]-b[1]);
+  sortedPrices=xs.map(x=>x[1]); rankOf=new Map();
+  xs.forEach(([i,p])=>{let lo=0,hi=sortedPrices.length;while(lo<hi){const m=(lo+hi)>>1;sortedPrices[m]<p?lo=m+1:hi=m}rankOf.set(i,lo/(Math.max(1,sortedPrices.length-1)))});
+}
+const colorOf=i=>rankOf.has(i)?ramp(rankOf.get(i)):null;
+
+/* Mapa de puntos genérico sobre canvas */
+function makeMap(canvas,opts){
+  const ctx=canvas.getContext("2d");
+  const K=Math.cos(41.6*Math.PI/180);
+  const B={x0:-7.15*K,x1:-1.75*K,y0:39.95,y1:43.35};
+  let view={...B}, W=0,H=0,dpr=1;
+  const st={sel:-1};
+  function fit(b){const bw=b.x1-b.x0,bh=b.y1-b.y0,ar=W/H;let cx=(b.x0+b.x1)/2,cy=(b.y0+b.y1)/2,w=bw,h=bh;if(w/h<ar)w=h*ar;else h=w/ar;w*=1.06;h*=1.06;view={x0:cx-w/2,x1:cx+w/2,y0:cy-h/2,y1:cy+h/2}}
+  const px=(lat,lon)=>[(lon*K-view.x0)/(view.x1-view.x0)*W,(view.y1-lat)/(view.y1-view.y0)*H];
+  function size(){const r=canvas.getBoundingClientRect();if(!r.width||!r.height)return;dpr=window.devicePixelRatio||1;W=r.width;H=r.height;canvas.width=Math.round(W*dpr);canvas.height=Math.round(H*dpr);fit(opts.bounds&&opts.bounds()||B);draw()}
+  function draw(){
+    const cs=getComputedStyle(document.documentElement);
+    ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,W,H);
+    const z=(B.x1-B.x0)/(view.x1-view.x0);
+    /* Provincias: relleno suave alterno y frontera marcada */
+    const active=opts.activeProv?opts.activeProv():-1;
+    PROV.forEach((ring,k)=>{ctx.beginPath();ring.forEach(([la,lo],n)=>{const[x,y]=px(la,lo);n?ctx.lineTo(x,y):ctx.moveTo(x,y)});ctx.closePath();
+      ctx.fillStyle=cs.getPropertyValue(k===active?"--prov-on":(k%2?"--prov-a":"--prov-b"));ctx.fill()});
+    ctx.lineJoin="round";
+    PROV.forEach((ring,k)=>{if(k===active)return;ctx.beginPath();ring.forEach(([la,lo],n)=>{const[x,y]=px(la,lo);n?ctx.lineTo(x,y):ctx.moveTo(x,y)});ctx.closePath();
+      ctx.strokeStyle=cs.getPropertyValue("--prov-line");ctx.lineWidth=1.5;ctx.stroke()});
+    if(active>=0){ctx.beginPath();PROV[active].forEach(([la,lo],n)=>{const[x,y]=px(la,lo);n?ctx.lineTo(x,y):ctx.moveTo(x,y)});ctx.closePath();ctx.strokeStyle=cs.getPropertyValue("--accent");ctx.lineWidth=2.5;ctx.stroke()}
+    const r=Math.min(7,3.2+z*.8);
+    curR=r;
+    const pts=opts.points();
+    pts.forEach(p=>{const[x,y]=px(p.lat,p.lon);if(x<-20||x>W+20||y<-10||y>H+30)return;
+      if(p.pick&&p.id!==st.sel){pin(x,y,p.r?p.r(r):r,p.fill||"#8a96a3",p.fill?1:.55)}
+      else if(!p.pick){ctx.beginPath();ctx.arc(x,y,p.r?p.r(r):r,0,Math.PI*2);if(p.fill){ctx.fillStyle=p.fill;ctx.fill()}if(p.stroke){ctx.strokeStyle=p.stroke;ctx.lineWidth=1;ctx.stroke()}}});
+    if(opts.labels){ctx.font="700 14px Barlow, system-ui, sans-serif";ctx.textAlign="center";ctx.textBaseline="middle";
+      opts.labels().forEach(([name,lat,lon],k)=>{const[x,y]=px(lat,lon);if(x>0&&x<W&&y>0&&y<H){ctx.lineWidth=4;ctx.strokeStyle=cs.getPropertyValue("--map-bg");ctx.strokeText(name.toUpperCase(),x,y);ctx.fillStyle=cs.getPropertyValue(k===active?"--accent":"--map-label");ctx.fillText(name.toUpperCase(),x,y)}});ctx.textBaseline="alphabetic"}
+    if(st.sel>=0){const p=pts.find(q=>q.id===st.sel);if(p){const[x,y]=px(p.lat,p.lon);const R=r*1.7;pin(x,y,R,p.fill||"#8a96a3",1,cs.getPropertyValue("--fg"));if(p.label)bubble(x,y-R*2.9-6,p.label,cs)}}
+  }
+  /* Marcador con forma de gota invertida: la punta toca el lugar exacto */
+  function pin(x,y,R,fill,alpha,ring){
+    const h=R*2.4,cy=y-h,a=Math.acos(R/h);
+    ctx.globalAlpha=alpha;ctx.beginPath();ctx.moveTo(x,y);ctx.arc(x,cy,R,Math.PI/2+a,Math.PI/2-a);ctx.closePath();
+    ctx.fillStyle=fill;ctx.fill();ctx.lineWidth=ring?2.5:1;ctx.strokeStyle=ring||"rgba(0,0,0,.35)";ctx.stroke();
+    ctx.beginPath();ctx.arc(x,cy,R*.38,0,Math.PI*2);ctx.fillStyle="rgba(255,255,255,.9)";ctx.fill();ctx.globalAlpha=1;
+  }
+  function bubble(x,y,text,cs){
+    ctx.font="600 14px Barlow, system-ui, sans-serif";const w=Math.min(ctx.measureText(text).width+20,W-12),h=28;
+    let bx=Math.max(6,Math.min(W-w-6,x-w/2)),by=y-h;if(by<4)by=4;
+    ctx.fillStyle=cs.getPropertyValue("--surface");ctx.strokeStyle=cs.getPropertyValue("--line");ctx.lineWidth=1;
+    ctx.beginPath();ctx.roundRect?ctx.roundRect(bx,by,w,h,8):ctx.rect(bx,by,w,h);ctx.fill();ctx.stroke();
+    ctx.beginPath();ctx.moveTo(x-6,by+h);ctx.lineTo(x+6,by+h);ctx.lineTo(x,by+h+6);ctx.closePath();ctx.fill();
+    ctx.fillStyle=cs.getPropertyValue("--fg");ctx.textAlign="left";ctx.textBaseline="middle";
+    let t=text;while(ctx.measureText(t).width>w-20&&t.length>3)t=t.slice(0,-2);if(t!==text)t=t.slice(0,-1)+"…";
+    ctx.fillText(t,bx+10,by+h/2+1);ctx.textBaseline="alphabetic";ctx.textAlign="center";
+  }
+  let curR=5;
+  function hit(mx,my){let best=-1,bd=18*18;opts.points().forEach(p=>{if(!p.pick)return;const[x,y]=px(p.lat,p.lon),hy=y-curR*2.4,d=(x-mx)**2+(hy-my)**2;if(d<bd){bd=d;best=p.id}});return best}
+  function zoomAt(f,mx,my){const ux=view.x0+(mx/W)*(view.x1-view.x0),uy=view.y1-(my/H)*(view.y1-view.y0);
+    const w=(view.x1-view.x0)*f;if(w<0.08||w>(B.x1-B.x0)*1.6)return;const h=(view.y1-view.y0)*f;
+    view={x0:ux-(mx/W)*w,x1:ux-(mx/W)*w+w,y1:uy+(my/H)*h,y0:uy+(my/H)*h-h};draw()}
+  let drag=null,moved=false;
+  canvas.addEventListener("pointerdown",e=>{drag={x:e.clientX,y:e.clientY,v:{...view}};moved=false;canvas.setPointerCapture(e.pointerId)});
+  canvas.addEventListener("pointermove",e=>{if(!drag)return;const dx=e.clientX-drag.x,dy=e.clientY-drag.y;if(Math.abs(dx)+Math.abs(dy)>4){moved=true;canvas.classList.add("drag")}
+    if(moved){const sx=(drag.v.x1-drag.v.x0)/W,sy=(drag.v.y1-drag.v.y0)/H;view={x0:drag.v.x0-dx*sx,x1:drag.v.x1-dx*sx,y0:drag.v.y0+dy*sy,y1:drag.v.y1+dy*sy};draw()}});
+  canvas.addEventListener("pointerup",e=>{canvas.classList.remove("drag");if(drag&&!moved){const r=canvas.getBoundingClientRect();const id=hit(e.clientX-r.left,e.clientY-r.top);st.sel=id;draw();opts.onPick(id)}drag=null});
+  canvas.addEventListener("wheel",e=>{e.preventDefault();const r=canvas.getBoundingClientRect();zoomAt(e.deltaY<0?0.8:1.25,e.clientX-r.left,e.clientY-r.top)},{passive:false});
+  new ResizeObserver(size).observe(canvas);
+  return{draw,size,refit(){fit(opts.bounds&&opts.bounds()||B);draw()},zoom(f){zoomAt(f,W/2,H/2)},select(id){st.sel=id;draw()}};
+}
+
+/* Etiquetas de provincia: centro de sus gasolineras */
+const labels=P.map((n,k)=>{const r=PROV[k];let A=0,cx=0,cy=0;for(let i=0;i<r.length-1;i++){const[a1,o1]=r[i],[a2,o2]=r[i+1],f=o1*a2-o2*a1;A+=f;cx+=(o1+o2)*f;cy+=(a1+a2)*f}A/=2;return[n,cy/(6*A),cx/(6*A)]});
+
+const gasMap=makeMap($("map"),{
+  labels:()=>labels,
+  activeProv:()=>prov,
+  bounds:()=>{if(prov<0)return null;const K=Math.cos(41.6*Math.PI/180),xs=S.filter(s=>s[0]===prov);return{x0:Math.min(...xs.map(s=>s[9]))*K,x1:Math.max(...xs.map(s=>s[9]))*K,y0:Math.min(...xs.map(s=>s[8])),y1:Math.max(...xs.map(s=>s[8]))}},
+  points:()=>{const out=[];const muted=getComputedStyle(document.documentElement).getPropertyValue("--map-label");
+    S.forEach((s,i)=>{if(prov>=0&&s[0]!==prov)return;const c=colorOf(i);out.push({id:i,lat:s[8],lon:s[9],fill:c,stroke:c?"rgba(0,0,0,.25)":muted,pick:true,r:c?null:(r=>r*.7),label:s[2]+" · "+s[1]})});
+    out.sort((a,b)=>(rankOf.get(b.id)??-1)-(rankOf.get(a.id)??-1));return out},
+  onPick:i=>showPick(i)
+});
+function showPick(i){
+  if(i<0){$("pick").innerHTML='<span class="muted">Toca cualquier punto del mapa para ver la gasolinera.</span>';return}
+  const s=S[i],c=colorOf(i);
+  const prices=[[5,"95"],[6,"Diésel"],[7,"98"]].filter(([k])=>s[k]).map(([k,l])=>`<span class="muted">${l}</span> <span class="pr">${fmt(s[k])} €</span>`).join(" &nbsp; ");
+  $("pick").innerHTML=`<div><span class="dot" style="background:${c||"transparent"};border:${c?"0":"1px solid currentColor"}"></span><span class="nm">${esc(s[2])}</span><span class="ad">${esc(s[3])} · ${esc(s[1])} (${P[s[0]]})</span><span class="ad">${esc(hor(s[4]))}</span></div><div>${prices||'<span class="muted">No informa precio de gasolina ni diésel</span>'}</div>`;
+}
+$("zin").onclick=()=>gasMap.zoom(.7);$("zout").onclick=()=>gasMap.zoom(1.4);$("zre").onclick=()=>gasMap.refit();
+
+function hero(){
+  [[5,"l95","w95"],[6,"ldi","wdi"]].forEach(([k,l,w])=>{const m=S.filter(s=>s[k]>0).reduce((a,b)=>b[k]<a[k]?b:a);
+    $(l).innerHTML=fmt(m[k])+"<small>€/l</small>";$(w).textContent=`${m[2]} · ${m[1]} (${P[m[0]]})`});
+  $("nTot").textContent=S.length;
+}
+function legend(){
+  $("lgMin").textContent=fmt(sortedPrices[0])+" €";$("lgMax").textContent=fmt(sortedPrices[sortedPrices.length-1])+" €";
+  const no=S.length-sortedPrices.length;$("lgNo").textContent=no?`· Marcadores grises: no venden ${FN[fuel]} (${no})`:"";
+}
+function provs(){
+  $("provs").innerHTML=P.map((p,k)=>{const xs=S.filter(s=>s[0]===k&&s[fuel]>0);if(!xs.length)return"";const m=xs.reduce((a,b)=>b[fuel]<a[fuel]?b:a);const avg=xs.reduce((a,s)=>a+s[fuel],0)/xs.length;
+    return`<button class="prov" data-p="${k}" aria-pressed="${prov===k}"><span class="n">${p}</span><span class="p">${fmt(m[fuel])} €</span><span class="m">Más barata en ${esc(m[1])}</span><span class="m">Media: ${fmt(avg)} € · ${S.filter(s=>s[0]===k).length} gasolineras</span></button>`}).join("");
+  document.querySelectorAll(".prov").forEach(b=>b.onclick=()=>{setProv(prov===+b.dataset.p?-1:+b.dataset.p)});
+}
+function setProv(k){prov=k;$("psel").value=k;shown=25;render();gasMap.refit();document.getElementById("mapa").scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"})}
+$("psel").innerHTML='<option value="-1">Todas</option>'+P.map((p,k)=>`<option value="${k}">${p}</option>`).join("");
+$("psel").onchange=e=>{prov=+e.target.value;shown=25;render();gasMap.refit()};
+
+function table(){
+  const q=norm($("q").value.trim());
+  let xs=S.map((s,i)=>i).filter(i=>{const s=S[i];return(prov<0||s[0]===prov)&&(!q||norm(s[1]+" "+s[2]).includes(q))});
+  xs.sort((a,b)=>(S[a][fuel]||9e9)-(S[b][fuel]||9e9));
+  const best=xs.length&&S[xs[0]][fuel]?S[xs[0]][fuel]:0;
+  $("rtitle").textContent=prov>=0?`Gasolineras de ${P[prov]}`:"Todas las gasolineras de Castilla y León";
+  $("rsub").textContent=`Precio de ${FN[fuel]} en euros por litro, de la más barata a la más cara. El color es el mismo que en el mapa.`;
+  const vis=xs.slice(0,shown);
+  $("tb").innerHTML=vis.length?vis.map((i,n)=>{const s=S[i],c=colorOf(i);return`<tr><td class="rank">${n+1}</td><td><strong>${esc(s[2])}</strong>${s[fuel]&&s[fuel]===best?'<span class="chip">Más barata</span>':""}<span class="addr">${esc(s[3])}</span></td><td>${esc(s[1])}<span class="addr">${P[s[0]]}</span></td><td class="price">${s[fuel]?`<span class="dot" style="background:${c}"></span>${fmt(s[fuel])} €`:'<span class="addr">No disponible</span>'}</td><td class="hor">${esc(hor(s[4]))}</td></tr>`}).join("")
+    :`<tr><td colspan="5" class="empty">No hay gasolineras que coincidan con “${esc($("q").value)}”.</td></tr>`;
+  $("count").textContent=`Mostrando ${vis.length} de ${xs.length}`;
+  $("moreBtn").hidden=vis.length>=xs.length;
+}
+$("moreBtn").onclick=()=>{shown+=25;table()};
+$("q").oninput=()=>{shown=25;table()};
+document.querySelectorAll("[data-f]").forEach(b=>b.onclick=()=>{fuel=+b.dataset.f;document.querySelectorAll("[data-f]").forEach(x=>x.setAttribute("aria-pressed",x===b));render()});
+function render(){computeRanks();legend();provs();table();gasMap.draw()}
+
+/* ---- Eléctricos ---- */
+const isFast=e=>/CCS|CHAdeMO/.test(e[5]);
+const evMap=makeMap($("evmap"),{
+  labels:()=>labels,
+  points:()=>{const cs=getComputedStyle(document.documentElement),ev=cs.getPropertyValue("--ev"),lab=cs.getPropertyValue("--map-label");
+    const out=S.map((s,i)=>({id:-2-i,lat:s[8],lon:s[9],stroke:lab,pick:false,r:r=>1.6}));
+    EV.forEach((e,i)=>{const f=isFast(e);if(evMode==="fast"&&!f||evMode==="slow"&&f)return;out.push({id:i,lat:e[0],lon:e[1],fill:f?ev:"#8a96a3",stroke:"rgba(0,0,0,.3)",pick:true,label:e[2]})});return out},
+  onPick:i=>{if(i<0){$("evpick").innerHTML='<span class="muted">Toca cualquier punto del mapa para ver el cargador.</span>';return}const e=EV[i];
+    $("evpick").innerHTML=`<div><span class="nm">${esc(e[2])}</span><span class="ad">${esc(e[3])}</span><span class="ad">Operador: ${esc(e[4]||"Sin indicar")}</span></div><div>${tags(e)}</div>`}
+});
+function tags(e){return e[5].split("/").filter((v,i,a)=>a.indexOf(v)===i).map(t=>`<span class="tag ${/CCS|CHAdeMO/.test(t)?"fast":""}">${esc(t)}</span>`).join("")}
+$("ezin").onclick=()=>evMap.zoom(.7);$("ezout").onclick=()=>evMap.zoom(1.4);$("ezre").onclick=()=>evMap.refit();
+document.querySelectorAll("[data-ev]").forEach(b=>b.onclick=()=>{evMode=b.dataset.ev;document.querySelectorAll("[data-ev]").forEach(x=>x.setAttribute("aria-pressed",x===b));evMap.select(-1);evTable();evMap.draw()});
+function evTable(){
+  const q=norm($("eq").value.trim());
+  const xs=EV.filter(e=>{const f=isFast(e);return!(evMode==="fast"&&!f||evMode==="slow"&&f)&&(!q||norm(e[2]+" "+e[3]+" "+e[4]).includes(q))});
+  xs.sort((a,b)=>isFast(b)-isFast(a)||a[3].localeCompare(b[3],"es"));
+  $("evtitle").textContent=`Puntos de carga (${xs.length})`;
+  $("etb").innerHTML=xs.length?xs.map(e=>`<tr><td><strong>${esc(e[2])}</strong></td><td>${esc(e[3])}</td><td>${esc(e[4]||"Sin indicar")}</td><td>${tags(e)}</td></tr>`).join(""):`<tr><td colspan="4" class="empty">No hay puntos de carga que coincidan.</td></tr>`;
+}
+$("eq").oninput=evTable;
+
+/* Navegación: #electrico abre la vista de eléctricos */
+function route(){const ev=location.hash==="#electrico";$("viewMain").hidden=ev;$("viewEv").hidden=!ev;
+  if(ev){evMap.size();window.scrollTo(0,0)}else{gasMap.size();const t=location.hash&&document.querySelector(location.hash);if(t&&location.hash!=="#inicio")t.scrollIntoView();else window.scrollTo(0,0)}}
+addEventListener("hashchange",route);
+const mq=matchMedia("(prefers-color-scheme: dark)");mq.addEventListener&&mq.addEventListener("change",()=>{gasMap.draw();evMap.draw()});
+new MutationObserver(()=>{gasMap.draw();evMap.draw()}).observe(document.documentElement,{attributes:true,attributeFilter:["data-theme"]});
+hero();render();evTable();route();
+</script>
+</body>
+</html>

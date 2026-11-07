@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mapa satélite de gasolineras de Castilla y León · Repostar Barato CyL</title>
+<link rel="canonical" href="__URL__/mapa.html">
+<!-- ADSENSE -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700&family=Barlow:wght@400;600&family=JetBrains+Mono:wght@700&display=swap">
+<style>
+html,body{height:100%;margin:0}
+body{font-family:Barlow,system-ui,sans-serif;background:#0e141a;color:#e6ebf0;display:flex;flex-direction:column}
+header{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;justify-content:space-between;padding:10px 16px;background:#121a22;border-bottom:1px solid #26323d}
+h1{font-family:"Barlow Condensed",sans-serif;font-size:24px;margin:0}
+.seg{display:inline-flex;background:#151d25;border:1px solid #26323d;border-radius:999px;padding:3px}
+.seg button{border:0;background:transparent;color:#97a3b0;font:600 14px Barlow,sans-serif;padding:6px 12px;border-radius:999px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:#0b5cad;color:#fff}
+#map{flex:1;min-height:300px}
+.legend{position:absolute;left:12px;bottom:24px;z-index:500;background:rgba(18,26,34,.9);padding:8px 12px;border-radius:10px;font-size:13px;display:flex;gap:8px;align-items:center}
+.ramp{width:120px;height:9px;border-radius:5px;background:linear-gradient(90deg,#1a9850,#a6d96a,#fee08b,#fdae61,#d73027)}
+.leaflet-popup-content{font-family:Barlow,system-ui,sans-serif;margin:12px 14px}
+.pn{font-weight:600;font-size:16px;color:#17212b}
+.pa{color:#5b6876;font-size:13px}
+.pp{font-family:"JetBrains Mono",monospace;font-weight:700;font-size:15px;margin-top:6px;color:#17212b}
+.gota{background:none;border:0}
+.plabel{background:transparent;border:0;box-shadow:none;color:#fff;font:700 14px "Barlow Condensed",sans-serif;letter-spacing:.08em;text-shadow:0 0 4px #000,0 0 8px #000}
+.plabel:before{display:none}
+</style>
+</head>
+<body>
+<header>
+  <h1><a href="./" style="color:inherit;text-decoration:none">⛽ Repostar Barato CyL</a> · Mapa satélite</h1>
+  <div class="seg" role="group" aria-label="Combustible">
+    <button data-f="5" aria-pressed="true">Gasolina 95</button><button data-f="6" aria-pressed="false">Diésel</button><button data-f="7" aria-pressed="false">Gasolina 98</button>
+  </div>
+</header>
+<div style="position:relative;flex:1;display:flex">
+  <div id="map" style="flex:1"></div>
+  <div class="legend"><span>Barata</span><span class="ramp"></span><span>Cara</span></div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+const S=__DATA__;
+const P=["Ávila","Burgos","León","Palencia","Salamanca","Segovia","Soria","Valladolid","Zamora"];
+const fmt=v=>(v/1000).toFixed(3).replace(".",",");
+const esc=s=>s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const STOPS=[[26,152,80],[166,217,106],[254,224,139],[253,174,97],[215,48,39]];
+function ramp(t){t=Math.max(0,Math.min(1,t))*(STOPS.length-1);const i=Math.min(STOPS.length-2,Math.floor(t)),f=t-i,a=STOPS[i],b=STOPS[i+1];return`rgb(${a.map((v,k)=>Math.round(v+(b[k]-v)*f)).join(",")})`}
+const map=L.map("map",{zoomControl:true}).fitBounds([[40.08,-7.08],[43.25,-1.75]]);
+L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",{maxZoom:19,attribution:"Imágenes © Esri, Maxar, Earthstar Geographics · Precios: MITECO"}).addTo(map);
+L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",{maxZoom:19,opacity:.85}).addTo(map);
+function gota(color){return L.divIcon({className:"gota",iconSize:[26,36],iconAnchor:[13,35],popupAnchor:[0,-32],
+  html:`<svg width="26" height="36" viewBox="0 0 26 36"><path d="M13 35C13 35 2 21 2 13a11 11 0 0 1 22 0c0 8-11 22-11 22z" fill="${color}" stroke="rgba(0,0,0,.55)" stroke-width="1.5"/><circle cx="13" cy="13" r="4.2" fill="#fff"/></svg>`})}
+const PROV=__PROV__;
+const NAMES=["Ávila","Burgos","León","Palencia","Salamanca","Segovia","Soria","Valladolid","Zamora"];
+PROV.forEach((r,k)=>{L.polygon(r,{color:"#ffffff",weight:2.5,opacity:.95,dashArray:"7 5",fillColor:"#ffffff",fillOpacity:.04,interactive:false}).addTo(map);
+  let A=0,cx=0,cy=0;for(let i=0;i<r.length-1;i++){const[a1,o1]=r[i],[a2,o2]=r[i+1],f=o1*a2-o2*a1;A+=f;cx+=(o1+o2)*f;cy+=(a1+a2)*f}A/=2;
+  L.tooltip({permanent:true,direction:"center",className:"plabel",interactive:false}).setLatLng([cy/(6*A),cx/(6*A)]).setContent(NAMES[k].toUpperCase()).addTo(map)});
+let layer=L.layerGroup().addTo(map), fuel=5;
+function draw(){
+  layer.clearLayers();
+  const xs=S.map((s,i)=>[i,s[fuel]]).filter(x=>x[1]>0).sort((a,b)=>a[1]-b[1]);const rank=new Map();xs.forEach(([i],n)=>rank.set(i,n/Math.max(1,xs.length-1)));
+  S.map((s,i)=>i).sort((a,b)=>(rank.get(b)??-1)-(rank.get(a)??-1)).forEach(i=>{const s=S[i];
+    const col=rank.has(i)?ramp(rank.get(i)):"#8a96a3";
+    const pr=[[5,"Gasolina 95"],[6,"Diésel"],[7,"Gasolina 98"]].filter(([k])=>s[k]).map(([k,l])=>`${l}: ${fmt(s[k])} €`).join("<br>");
+    L.marker([s[8],s[9]],{icon:gota(col),title:s[2]}).bindPopup(`<div class="pn">${esc(s[2])}</div><div class="pa">${esc(s[3])} · ${esc(s[1])} (${P[s[0]]})</div><div class="pp">${pr||"Sin precio de carburante"}</div>`).addTo(layer)});
+}
+document.querySelectorAll("[data-f]").forEach(b=>b.onclick=()=>{fuel=+b.dataset.f;document.querySelectorAll("[data-f]").forEach(x=>x.setAttribute("aria-pressed",x===b));draw()});
+draw();
+</script>
+</body>
+</html>

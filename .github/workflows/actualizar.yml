@@ -1,0 +1,53 @@
+name: Actualizar precios y publicar la web
+
+on:
+  schedule:
+    # Hora UTC: 05:30 y 13:30 (06:30 y 14:30 en invierno en España, una hora más en verano)
+    - cron: "30 5,13 * * *"
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.despliegue.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Descargar precios y generar la web
+        env:
+          URL_WEB: ${{ vars.URL_WEB }}
+        run: python scripts/actualizar.py
+
+      - name: Guardar los últimos precios en el repositorio
+        run: |
+          git config user.name "actualizador-precios"
+          git config user.email "actions@users.noreply.github.com"
+          git add datos/
+          git diff --cached --quiet || git commit -m "Precios actualizados $(date -u +'%Y-%m-%d %H:%M') UTC [skip ci]"
+          git push || echo "No se pudieron guardar los datos (no afecta a la web)"
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: sitio
+
+      - id: despliegue
+        uses: actions/deploy-pages@v4
