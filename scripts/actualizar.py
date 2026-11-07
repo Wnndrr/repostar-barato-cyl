@@ -6,6 +6,7 @@ Solo usa la biblioteca estándar de Python (no hay que instalar nada).
 """
 import json
 import os
+import ssl
 import re
 import shutil
 import sys
@@ -36,6 +37,18 @@ MESES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio",
          "agosto", "septiembre", "octubre", "noviembre", "diciembre"]
 
 
+def contexto_ssl():
+    # El servidor del Ministerio usa una configuración TLS antigua que Python moderno rechaza.
+    ctx = ssl.create_default_context()
+    ctx.options |= getattr(ssl, "OP_LEGACY_SERVER_CONNECT", 0x4)
+    try:
+        ctx.set_ciphers("DEFAULT:@SECLEVEL=1")
+    except ssl.SSLError:
+        pass
+    ctx.minimum_version = ssl.TLSVersion.TLSv1_2
+    return ctx
+
+
 def descargar_json(url, intentos=4):
     ultimo = None
     for n in range(intentos):
@@ -44,7 +57,7 @@ def descargar_json(url, intentos=4):
                 "Accept": "application/json",
                 "User-Agent": "RepostarBaratoCyL/1.0 (web de precios de carburantes)",
             })
-            with urllib.request.urlopen(req, timeout=90) as r:
+            with urllib.request.urlopen(req, timeout=90, context=contexto_ssl()) as r:
                 return json.loads(r.read().decode("utf-8"))
         except Exception as e:  # noqa: BLE001
             ultimo = e
