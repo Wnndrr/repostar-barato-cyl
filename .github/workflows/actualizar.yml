@@ -30,15 +30,6 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Diagnóstico de conexión con el Ministerio
-        continue-on-error: true
-        run: |
-          U=https://sedeaplicaciones.minetur.gob.es/ServiciosRESTCarburantes/PreciosCarburantes/Listados/Provincias/
-          curl -sS -o /dev/null -w "curl https: %{http_code} %{ssl_verify_result}\n" --max-time 40 "$U" || echo "curl https falló"
-          curl -sS -o /dev/null -w "curl http: %{http_code}\n" --max-time 40 "${U/https/http}" || echo "curl http falló"
-          echo | timeout 40 openssl s_client -connect sedeaplicaciones.minetur.gob.es:443 -servername sedeaplicaciones.minetur.gob.es 2>&1 | grep -E "Protocol|Cipher|errno|error|CONNECTED|Verify" | head -8 || true
-          curl -s --max-time 10 https://ipinfo.io/country || true
-
       - name: Descargar precios y generar la web
         env:
           URL_WEB: ${{ vars.URL_WEB }}
