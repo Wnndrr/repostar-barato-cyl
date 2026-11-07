@@ -1,0 +1,2 @@
+# Pega aquí la línea de AdSense cuando tengas tu número de editor, por ejemplo:
+# google.com, pub-0000000000000000, DIRECT, f08c47fec0942fa0
