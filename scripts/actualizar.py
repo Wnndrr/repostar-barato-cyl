@@ -20,7 +20,7 @@ SALIDA = RAIZ / "sitio"
 
 # Dirección pública de la web. Cuando tengas dominio propio, cámbiala aquí
 # (o define la variable de entorno URL_WEB en GitHub).
-URL_WEB = os.environ.get("URL_WEB", "https://wnndrr.github.io/repostar-barato-cyl").rstrip("/")
+URL_WEB = os.environ.get("URL_WEB") or "https://repostarbaratocyl.es".rstrip("/")
 
 API_MINISTERIO = (
     "https://sedeaplicaciones.minetur.gob.es/ServiciosRESTCarburantes/"
