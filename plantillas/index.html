@@ -118,6 +118,9 @@ td.hor{font-size:14px;color:var(--muted);max-width:220px}
 
 .info{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:24px}
 .info article{min-width:0}
+.info article a{color:inherit;text-decoration:none}
+.info article a:hover h3{color:var(--accent)}
+.info .lee{color:var(--accent);font-weight:600;font-size:15px;margin-top:6px;display:inline-block}
 .info h3{font-family:var(--f-display);font-size:22px;margin:0 0 6px}
 .info p{margin:0;color:var(--muted);max-width:62ch}
 footer{border-top:1px solid var(--line);color:var(--muted);font-size:14px}
@@ -150,6 +153,7 @@ footer .wrap{padding-block:24px;display:flex;justify-content:space-between;gap:1
   <a class="brand" href="#inicio"><i>⛽</i>Repostar Barato CyL</a>
   <nav class="menu" aria-label="Secciones">
     <a href="#mapa">Mapa</a><a href="#provincias">Provincias</a><a href="#ranking">Todas las gasolineras</a>
+    <a href="consejos/">Consejos</a>
     <a href="mapa.html">Mapa satélite</a>
     <a class="evlink" href="#electrico">⚡ Coche eléctrico</a>
   </nav>
@@ -229,12 +233,11 @@ footer .wrap{padding-block:24px;display:flex;justify-content:space-between;gap:1
 
   <section id="consejos">
     <h2>Consejos para gastar menos</h2>
-    <p class="sub">Artículos propios que ayudan a que Google valore la web.</p>
+    <p class="sub">Guías con los precios de hoy para ahorrar en cada depósito.</p>
     <div class="info">
-      <article><h3>¿Qué día es más barato repostar?</h3><p>Los precios cambian a lo largo de la semana. Con el histórico de la web podremos mostrar qué días suelen bajar en cada provincia.</p></article>
-      <article><h3>Gasolineras en ruta por la A-6</h3><p>Una guía con la estación más barata en cada tramo entre Benavente y Ponferrada, pensada para quien viaja hacia Galicia.</p></article>
-      <article><h3>Las autonomías de bajo coste</h3><p>Las gasolineras automáticas de polígono suelen ser bastante más baratas que las de autovía. Te enseñamos a encontrarlas en el mapa.</p></article>
+__CONSEJOS__
     </div>
+    <p style="margin:18px 0 0"><a class="btn" href="consejos/" style="text-decoration:none;display:inline-block">Ver todos los consejos</a></p>
   </section>
 </div></main>
 </div>
