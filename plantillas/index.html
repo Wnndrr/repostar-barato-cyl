@@ -132,6 +132,7 @@ td.hor{font-size:14px;color:var(--muted);max-width:220px}
 .info{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:24px}
 .calc{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px}
 .calc .euro{display:flex;align-items:center;gap:6px}
+.calcmodo .seg{justify-self:start}
 .calc .gaswrap{grid-column:1/-1;display:grid;gap:6px}
 .calc .gaswrap select{font-size:15px}
 .vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
@@ -258,11 +259,17 @@ footer .wrap{padding-block:24px;display:flex;justify-content:space-between;gap:1
   </section>
 
   <section id="calculadora">
-    <h2>Calculadora: ¿cuántos litros me dan?</h2>
-    <p class="sub">Escribe cuánto dinero vas a echar y te decimos cuántos litros te llevas con los precios de hoy.</p>
+    <h2>Calculadora de combustible</h2>
+    <p class="sub">Calcula cuántos litros te dan con tu dinero, o cuánto te cuesta echar los litros que quieras, con los precios de hoy.</p>
     <div class="calc">
-      <label class="field" for="cDinero"><span>Dinero</span>
-        <span class="euro"><input id="cDinero" type="number" inputmode="decimal" min="1" max="2000" step="1" value="50"><b>€</b></span>
+      <div class="field calcmodo"><span>¿Qué sabes?</span>
+        <div class="seg" role="group" aria-label="Calcular a partir de">
+          <button type="button" id="cModoE" aria-pressed="true">Dinero</button>
+          <button type="button" id="cModoL" aria-pressed="false">Litros</button>
+        </div>
+      </div>
+      <label class="field" for="cDinero"><span id="cDineroL">Dinero que vas a echar</span>
+        <span class="euro"><input id="cDinero" type="number" inputmode="decimal" min="1" max="2000" step="1" value="50"><b id="cDineroU">€</b></span>
       </label>
       <label class="field" for="cComb"><span>Combustible</span>
         <select id="cComb"><option value="5">Gasolina 95</option><option value="6">Diésel</option><option value="7">Gasolina 98</option><option value="10">Autogás (GLP)</option><option value="11">AdBlue</option><option value="12">Gas natural (GNC)</option></select>
@@ -588,11 +595,13 @@ function listaGas(keep){
 function calc(){
   const f=+$("cComb").value,z=+$("cZona").value,modo=$("cDonde").value,din=parseFloat(String($("cDinero").value).replace(",","."));
   const ud=f===12?"kilos":"litros",u1=f===12?"kilo":"litro";
+  $("cDineroL").textContent=porLitros?`${ud[0].toUpperCase()+ud.slice(1)} que quieres echar`:"Dinero que vas a echar";
+  $("cDineroU").textContent=porLitros?(f===12?"kg":"l"):"€";
   $("cManualW").hidden=modo!=="manual";$("cManualL").textContent=`Precio por ${u1}`;
   $("cGasW").hidden=modo!=="gas";
   const gv=$("cGas").value,zc=modo==="gas"&&gv!==""?S[+gv][0]:z;
   const xs=S.filter(s=>(zc<0||s[0]===zc)&&s[f]);
-  if(!(din>0)){$("cRes").innerHTML="<p>Escribe cuánto dinero vas a echar.</p>";return}
+  if(!(din>0)){$("cRes").innerHTML=porLitros?`<p>Escribe cuántos ${ud} quieres echar.</p>`:"<p>Escribe cuánto dinero vas a echar.</p>";return}
   if(!xs.length){$("cRes").innerHTML=`<p>No hay gasolineras con ${FN[f]} en esta zona. Prueba con otra zona.</p>`;return}
   const mn=xs.reduce((a,b)=>b[f]<a[f]?b:a),mx=xs.reduce((a,b)=>b[f]>a[f]?b:a),avg=xs.reduce((a,s)=>a+s[f],0)/xs.length;
   let precio,donde="";
@@ -605,6 +614,13 @@ function calc(){
   else if(modo==="min"){precio=mn[f];donde=` en <strong>${esc(mn[2])}</strong> · <a href="${urlPueblo(mn)}">${esc(nomP(mn[1]))}</a>, la más barata${z<0?" de Castilla y León":" de "+P[z]}`}
   else if(modo==="max"){precio=mx[f];donde=` en <strong>${esc(mx[2])}</strong> · ${esc(nomP(mx[1]))}, la más cara${z<0?" de Castilla y León":" de "+P[z]}`}
   else{precio=avg;donde=`, el precio medio${z<0?" de Castilla y León":" de "+P[z]}`}
+  if(porLitros){ // cuánto cuesta una cantidad de litros
+    const e=din*precio/1000,emn=din*mn[f]/1000,emx=din*mx[f]/1000;
+    let cmp="";
+    if(modo!=="min"&&e-emn>0.005)cmp=`<p class="cmp">En la más barata ${zc<0?"de Castilla y León":"de "+P[zc]} (${esc(mn[2])}, ${fmt(mn[f])}${U(f)}) te costaría <strong>${nf(emn,2)} €</strong>: <strong>${nf(e-emn,2)} € menos</strong>.</p>`;
+    else if(emx-emn>0.005)cmp=`<p class="cmp">En la más cara de la zona (${fmt(mx[f])}${U(f)}) pagarías ${nf(emx,2)} €: <strong>${nf(emx-emn,2)} € más</strong>.</p>`;
+    $("cRes").innerHTML=`<div class="big">${nf(e,2)}<small>€</small></div><p><strong>${nf(din,din%1?1:0)} ${ud}</strong> de ${FN[f]} a <strong>${fmt(Math.round(precio))}${U(f)}</strong>${donde}.</p>${cmp}`;
+    return}
   const l=din/(precio/1000),lmn=din/(mn[f]/1000),lmx=din/(mx[f]/1000);
   let cmp="";
   if(modo!=="min"&&lmn-l>0.05)cmp=`<p class="cmp">En la más barata ${zc<0?"de Castilla y León":"de "+P[zc]} (${esc(mn[2])}, ${fmt(mn[f])}${U(f)}) te darían <strong>${nf(lmn)} ${ud}</strong>: <strong>${nf(lmn-l)} ${ud} más</strong> por el mismo dinero.</p>`;
@@ -612,6 +628,10 @@ function calc(){
   $("cRes").innerHTML=`<div class="big">${nf(l)}<small>${ud}</small></div><p>Con <strong>${nf(din,din%1?2:0)} €</strong> de ${FN[f]} a <strong>${fmt(Math.round(precio))}${U(f)}</strong>${donde}.</p>${cmp}`;
 }
 ["cDinero","cDonde","cManual","cGas"].forEach(id=>$(id).addEventListener("input",calc));
+let porLitros=false;
+[["cModoE",false],["cModoL",true]].forEach(([id,v])=>$(id).onclick=()=>{if(porLitros===v)return;porLitros=v;
+  $("cModoE").setAttribute("aria-pressed",!v);$("cModoL").setAttribute("aria-pressed",v);
+  $("cDinero").value=v?40:50;$("cDinero").step=v?"0.1":"1";calc()});
 ["cComb","cZona","cBusca"].forEach(id=>$(id).addEventListener("input",()=>{listaGas();calc()}));
 function calcEn(i){const s=S[i];const f=s[fuel]?fuel:[5,6,7,10,11,12].find(k=>s[k]);if(!f)return;
   $("cComb").value=f;$("cZona").value=s[0];$("cDonde").value="gas";$("cBusca").value="";listaGas(String(i));calc();
