@@ -101,6 +101,9 @@ th{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--mute
 tr:last-child td{border-bottom:0}
 td.price{font-family:var(--f-num);font-weight:700;font-size:17px;white-space:nowrap;font-variant-numeric:tabular-nums}
 td .addr{display:block;font-size:13px;color:var(--muted)}
+a.dir{color:var(--accent);text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:2px}
+a.dir:hover{text-decoration-thickness:2px}
+.pick a.ad{display:block}
 td .hor-m{display:none}
 td.hor{font-size:14px;color:var(--muted);max-width:220px}
 .rank{font-family:var(--f-num);color:var(--muted);font-variant-numeric:tabular-nums}
@@ -324,6 +327,7 @@ const $=id=>document.getElementById(id);
 const fmt=v=>(v/1000).toFixed(3).replace(".",",");
 const norm=s=>s.normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase();
 const esc=s=>s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const ruta=s=>`https://www.google.com/maps/dir/?api=1&destination=${s[8]},${s[9]}`;
 const hor=h=>h.replace(/L-D: 24H/,"24 horas").replace(/L-D: /,"Todos los días ");
 
 /* Escala de color por percentil de precio */
@@ -417,7 +421,7 @@ function showPick(i){
   if(i<0){$("pick").innerHTML='<span class="muted">Toca cualquier punto del mapa para ver la gasolinera.</span>';return}
   const s=S[i],c=colorOf(i);
   const prices=[[5,"95"],[6,"Diésel"],[7,"98"]].filter(([k])=>s[k]).map(([k,l])=>`<span class="muted">${l}</span> <span class="pr">${fmt(s[k])} €</span>`).join(" &nbsp; ");
-  $("pick").innerHTML=`<div><span class="dot" style="background:${c||"transparent"};border:${c?"0":"1px solid currentColor"}"></span><span class="nm">${esc(s[2])}</span><span class="ad">${esc(s[3])} · ${esc(s[1])} (${P[s[0]]})</span><span class="ad">${esc(hor(s[4]))}</span></div><div>${prices||'<span class="muted">No informa precio de gasolina ni diésel</span>'}</div>`;
+  $("pick").innerHTML=`<div><span class="dot" style="background:${c||"transparent"};border:${c?"0":"1px solid currentColor"}"></span><span class="nm">${esc(s[2])}</span><a class="ad dir" href="${ruta(s)}" target="_blank" rel="noopener">${esc(s[3])} · ${esc(s[1])} (${P[s[0]]})</a><span class="ad">${esc(hor(s[4]))}</span></div><div>${prices||'<span class="muted">No informa precio de gasolina ni diésel</span>'}<div style="margin-top:8px"><a class="btn" href="${ruta(s)}" target="_blank" rel="noopener" style="text-decoration:none;display:inline-block">Cómo llegar ↗</a></div></div>`;
 }
 $("zin").onclick=()=>gasMap.zoom(.7);$("zout").onclick=()=>gasMap.zoom(1.4);$("zre").onclick=()=>gasMap.refit();
 
@@ -447,7 +451,7 @@ function table(){
   $("rtitle").textContent=prov>=0?`Gasolineras de ${P[prov]}`:"Todas las gasolineras de Castilla y León";
   $("rsub").textContent=`Precio de ${FN[fuel]} en euros por litro, de la más barata a la más cara. El color es el mismo que en el mapa.`;
   const vis=xs.slice(0,shown);
-  $("tb").innerHTML=vis.length?vis.map((i,n)=>{const s=S[i],c=colorOf(i);return`<tr><td class="rank">${n+1}</td><td><strong>${esc(s[2])}</strong>${s[fuel]&&s[fuel]===best?'<span class="chip">Más barata</span>':""}<span class="addr">${esc(s[3])}</span><span class="addr hor-m">🕒 ${esc(hor(s[4]))}</span></td><td>${esc(s[1])}<span class="addr">${P[s[0]]}</span></td><td class="price">${s[fuel]?`<span class="dot" style="background:${c}"></span>${fmt(s[fuel])} €`:'<span class="addr">No disponible</span>'}</td><td class="hor">${esc(hor(s[4]))}</td></tr>`}).join("")
+  $("tb").innerHTML=vis.length?vis.map((i,n)=>{const s=S[i],c=colorOf(i);return`<tr><td class="rank">${n+1}</td><td><strong>${esc(s[2])}</strong>${s[fuel]&&s[fuel]===best?'<span class="chip">Más barata</span>':""}<a class="addr dir" href="${ruta(s)}" target="_blank" rel="noopener">${esc(s[3])} ↗</a><span class="addr hor-m">🕒 ${esc(hor(s[4]))}</span></td><td>${esc(s[1])}<span class="addr">${P[s[0]]}</span></td><td class="price">${s[fuel]?`<span class="dot" style="background:${c}"></span>${fmt(s[fuel])} €`:'<span class="addr">No disponible</span>'}</td><td class="hor">${esc(hor(s[4]))}</td></tr>`}).join("")
     :`<tr><td colspan="5" class="empty">No hay gasolineras que coincidan con “${esc($("q").value)}”.</td></tr>`;
   $("count").textContent=`Mostrando ${vis.length} de ${xs.length}`;
   $("moreBtn").hidden=vis.length>=xs.length;

@@ -24,6 +24,7 @@ h1{font-family:"Barlow Condensed",sans-serif;font-size:24px;margin:0}
 .pa{color:#5b6876;font-size:13px}
 .pp{font-family:"JetBrains Mono",monospace;font-weight:700;font-size:15px;margin-top:6px;color:#17212b}
 .gota{background:none;border:0}
+.dirb{display:inline-block;margin-top:8px;background:#0b5cad;color:#fff!important;font-weight:600;padding:6px 12px;border-radius:999px;text-decoration:none}
 .plabel{background:transparent;border:0;box-shadow:none;color:#fff;font:700 14px "Barlow Condensed",sans-serif;letter-spacing:.08em;text-shadow:0 0 4px #000,0 0 8px #000}
 .plabel:before{display:none}
 </style>
@@ -64,7 +65,7 @@ function draw(){
   S.map((s,i)=>i).sort((a,b)=>(rank.get(b)??-1)-(rank.get(a)??-1)).forEach(i=>{const s=S[i];
     const col=rank.has(i)?ramp(rank.get(i)):"#8a96a3";
     const pr=[[5,"Gasolina 95"],[6,"Diésel"],[7,"Gasolina 98"]].filter(([k])=>s[k]).map(([k,l])=>`${l}: ${fmt(s[k])} €`).join("<br>");
-    L.marker([s[8],s[9]],{icon:gota(col),title:s[2]}).bindPopup(`<div class="pn">${esc(s[2])}</div><div class="pa">${esc(s[3])} · ${esc(s[1])} (${P[s[0]]})</div><div class="pp">${pr||"Sin precio de carburante"}</div>`).addTo(layer)});
+    L.marker([s[8],s[9]],{icon:gota(col),title:s[2]}).bindPopup(`<div class="pn">${esc(s[2])}</div><div class="pa">${esc(s[3])} · ${esc(s[1])} (${P[s[0]]})</div><div class="pp">${pr||"Sin precio de carburante"}</div><a class="dirb" href="https://www.google.com/maps/dir/?api=1&destination=${s[8]},${s[9]}" target="_blank" rel="noopener">Cómo llegar ↗</a>`).addTo(layer)});
 }
 document.querySelectorAll("[data-f]").forEach(b=>b.onclick=()=>{fuel=+b.dataset.f;document.querySelectorAll("[data-f]").forEach(x=>x.setAttribute("aria-pressed",x===b));draw()});
 draw();

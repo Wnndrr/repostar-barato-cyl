@@ -216,7 +216,7 @@ def w_ruta(G, fecha, ruta, comb="95", n="10"):
     if not xs:
         return ""
     filas = "".join(
-        f"<tr><td>{i + 1}</td><td>{esc(g[2])}<small>{esc(g[3])}</small></td>"
+        f"<tr><td>{i + 1}</td><td>{esc(g[2])}<small><a href=\"https://www.google.com/maps/dir/?api=1&amp;destination={g[8]},{g[9]}\" target=\"_blank\" rel=\"noopener\">{esc(g[3])} ↗</a></small></td>"
         f"<td>{esc(g[1])}<small>{NOMBRES_PROV[g[0]]}</small></td><td class=\"n\">{eur(g[k])}</td></tr>"
         for i, g in enumerate(xs[:int(n)]))
     dif = (xs[-1][k] - xs[0][k]) * 50 / 1000
