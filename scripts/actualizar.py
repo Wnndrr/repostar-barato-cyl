@@ -452,7 +452,7 @@ def generar_pueblos(datos, reemplazos, head_extra):
             dif = m - medias_prov[pr][k]
             comp = ("prácticamente igual que" if abs(dif) < 5 else
                     f"{eur(abs(dif))} {'más barato' if dif < 0 else 'más caro'} que")
-            frases.append(f"El litro de {nom} cuesta de media {eur(m)}"
+            frases.append(f"El litro de {nom} cuesta {'de media ' if len(v) > 1 else ''}{eur(m)}"
                           + (f" (de {eur(v[0])} a {eur(v[-1])})" if len(v) > 1 else "")
                           + f", {comp} la media de la provincia de {np_} ({eur(medias_prov[pr][k])}).")
         mejor_cerca = []
