@@ -20,4 +20,4 @@ Web con los precios de la gasolina y el diésel en las gasolineras de Castilla y
 3. Pegar el código de AdSense donde pone `ADSENSE` en las plantillas y la línea de `ads.txt`.
 4. Publicar artículos propios.
 
-Fuentes: Ministerio para la Transición Ecológica y el Reto Demográfico; Junta de Castilla y León.
+Fuentes: Ministerio para la Transición Ecológica y el Reto Demográfico (carburantes); DGT, Punto de Acceso Nacional (puntos de carga, CC BY).

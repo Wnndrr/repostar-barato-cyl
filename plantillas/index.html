@@ -181,6 +181,7 @@ footer .wrap{padding-block:24px;display:flex;justify-content:space-between;gap:1
 .callout{background:var(--warn-soft);color:var(--warn);border-radius:12px;padding:14px 16px;font-size:15px}
 @media (max-width:760px){.hero .wrap{grid-template-columns:1fr}}
 @media (max-width:620px){
+  #viewEv th:nth-child(3),#viewEv td:nth-child(3){display:none}
   table{min-width:0}
   th,td{padding:10px 8px}
   #ranking th:nth-child(5),#ranking td.hor,#ranking th:first-child,#ranking td.rank{display:none}
@@ -369,11 +370,11 @@ __CONSEJOS__
       <canvas id="evmap" tabindex="0" aria-label="Mapa de puntos de carga de Castilla y León"></canvas>
       <div class="zoom"><button id="ezin" aria-label="Acercar">+</button><button id="ezout" aria-label="Alejar">−</button><button id="ezre" aria-label="Ver toda la comunidad" style="font-size:13px">⤢</button></div>
     </div>
-    <div class="evlegend"><span><span class="dot" style="background:var(--ev)"></span>Carga rápida (CCS / CHAdeMO)</span><span><span class="dot" style="background:#8a96a3"></span>Solo carga normal</span><span style="opacity:.8"><span class="dot" style="background:transparent;border:1px solid #8a96a3;width:6px;height:6px"></span>Gasolineras, como referencia</span></div>
+    <div class="evlegend"><span><span class="dot" style="background:var(--ev)"></span>Carga rápida (43 kW o más)</span><span><span class="dot" style="background:#8a96a3"></span>Solo carga normal</span><span style="opacity:.8"><span class="dot" style="background:transparent;border:1px solid #8a96a3;width:6px;height:6px"></span>Gasolineras, como referencia</span></div>
     <div class="pick" id="evpick"><span class="muted">Toca cualquier punto del mapa para ver el cargador.</span></div>
   </section>
 
-  <div class="callout"><strong>Sobre los precios de carga.</strong> Este listado viene del portal de datos abiertos de la Junta de Castilla y León, que no incluye precios y se actualizó por última vez en enero de 2022, así que faltan los cargadores más nuevos. Desde 2023 los operadores de puntos de carga de 43 kW o más están obligados a comunicar su precio al Ministerio. Cuando ese dato esté disponible para descargar, lo añadiremos aquí igual que los precios de la gasolina.</div>
+  <div class="callout"><strong>Sobre los datos.</strong> Los cargadores vienen del Punto de Acceso Nacional de la DGT, donde los operadores publican su información oficial, y se actualizan cada día. Todavía no mostramos el precio de la carga: en España cada operador pone su tarifa, normalmente en euros por kWh. Estamos preparando la conexión con el mapa oficial REVE de Red Eléctrica para añadir los precios en cuanto sea posible.</div>
 
   <section>
     <h2 id="evtitle">Puntos de carga</h2>
@@ -383,7 +384,7 @@ __CONSEJOS__
       </label>
     </div>
     <div class="tablebox"><table>
-      <thead><tr><th>Punto de carga</th><th>Dirección</th><th>Operador</th><th>Conectores</th></tr></thead>
+      <thead><tr><th>Punto de carga</th><th>Dirección</th><th>Operador</th><th>Potencia</th><th>Conectores</th></tr></thead>
       <tbody id="etb"></tbody>
     </table></div>
   </section>
@@ -391,7 +392,7 @@ __CONSEJOS__
 </div>
 
 <footer><div class="wrap">
-  <span>Fuentes: Ministerio para la Transición Ecológica y el Reto Demográfico (precios de carburantes) y Junta de Castilla y León (puntos de carga), datos abiertos. Web no vinculada a ninguno de los dos.</span>
+  <span>Fuentes: Ministerio para la Transición Ecológica y el Reto Demográfico (precios de carburantes) y DGT · Punto de Acceso Nacional (puntos de carga, licencia CC BY), datos abiertos. Web no vinculada a ninguno de los dos.</span>
   <span><a href="aviso-legal.html">Aviso legal</a> · <a href="privacidad.html">Privacidad</a> · <a href="cookies.html">Cookies</a> · <a href="contacto.html">Contacto</a></span>
 </div></footer>
 
@@ -547,14 +548,15 @@ document.querySelectorAll("[data-f]").forEach(b=>b.onclick=()=>{fuel=+b.dataset.
 function render(){computeRanks();legend();provs();table();gasMap.draw()}
 
 /* ---- Eléctricos ---- */
-const isFast=e=>/CCS|CHAdeMO/.test(e[5]);
+const isFast=e=>e[6]!=null?e[6]>=43:/CCS|CHAdeMO/.test(e[5]);
+const kw=e=>e[6]?`hasta ${e[6]} kW`:"";
 const evMap=makeMap($("evmap"),{
   labels:()=>labels,
   points:()=>{const cs=getComputedStyle(document.documentElement),ev=cs.getPropertyValue("--ev"),lab=cs.getPropertyValue("--map-label");
     const out=S.map((s,i)=>({id:-2-i,lat:s[8],lon:s[9],stroke:lab,pick:false,r:r=>1.6}));
     EV.forEach((e,i)=>{const f=isFast(e);if(evMode==="fast"&&!f||evMode==="slow"&&f)return;out.push({id:i,lat:e[0],lon:e[1],fill:f?ev:"#8a96a3",stroke:"rgba(0,0,0,.3)",pick:true,label:e[2]})});return out},
   onPick:i=>{if(i<0){$("evpick").innerHTML='<span class="muted">Toca cualquier punto del mapa para ver el cargador.</span>';return}const e=EV[i];
-    $("evpick").innerHTML=`<div><span class="nm">${esc(e[2])}</span><span class="ad">${esc(e[3])}</span><span class="ad">Operador: ${esc(e[4]||"Sin indicar")}</span></div><div>${tags(e)}</div>`}
+    $("evpick").innerHTML=`<div><span class="nm">${esc(e[2])}</span><span class="ad">${esc(e[3])}</span><span class="ad">Operador: ${esc(e[4]||"Sin indicar")}</span>${e[7]?`<span class="ad">${e[7]} punto${e[7]>1?"s":""} de carga${e[6]?" · "+kw(e):""}</span>`:""}${e[8]?`<span class="ad">${esc(e[8].replace(/\s+\(00:00 - 23:59\)/g," 24 h"))}</span>`:""}</div><div>${tags(e)}<div style="margin-top:8px"><a class="btn" href="https://www.google.com/maps/dir/?api=1&destination=${e[0]},${e[1]}" target="_blank" rel="noopener" style="text-decoration:none;display:inline-block">Cómo llegar ↗</a></div></div>`}
 });
 function tags(e){return e[5].split("/").filter((v,i,a)=>a.indexOf(v)===i).map(t=>`<span class="tag ${/CCS|CHAdeMO/.test(t)?"fast":""}">${esc(t)}</span>`).join("")}
 $("ezin").onclick=()=>evMap.zoom(.7);$("ezout").onclick=()=>evMap.zoom(1.4);$("ezre").onclick=()=>evMap.refit();
@@ -562,9 +564,9 @@ document.querySelectorAll("[data-ev]").forEach(b=>b.onclick=()=>{evMode=b.datase
 function evTable(){
   const q=norm($("eq").value.trim());
   const xs=EV.filter(e=>{const f=isFast(e);return!(evMode==="fast"&&!f||evMode==="slow"&&f)&&(!q||norm(e[2]+" "+e[3]+" "+e[4]).includes(q))});
-  xs.sort((a,b)=>isFast(b)-isFast(a)||a[3].localeCompare(b[3],"es"));
+  xs.sort((a,b)=>isFast(b)-isFast(a)||(b[6]||0)-(a[6]||0)||a[3].localeCompare(b[3],"es"));
   $("evtitle").textContent=`Puntos de carga (${xs.length})`;
-  $("etb").innerHTML=xs.length?xs.map(e=>`<tr><td><strong>${esc(e[2])}</strong></td><td>${esc(e[3])}</td><td>${esc(e[4]||"Sin indicar")}</td><td>${tags(e)}</td></tr>`).join(""):`<tr><td colspan="4" class="empty">No hay puntos de carga que coincidan.</td></tr>`;
+  $("etb").innerHTML=xs.length?xs.map(e=>`<tr><td><strong>${esc(e[2])}</strong></td><td><a class="dir" href="https://www.google.com/maps/dir/?api=1&destination=${e[0]},${e[1]}" target="_blank" rel="noopener">${esc(e[3])} ↗</a></td><td>${esc(e[4]||"Sin indicar")}</td><td class="price">${e[6]?e[6]+" kW":"—"}</td><td>${tags(e)}</td></tr>`).join(""):`<tr><td colspan="5" class="empty">No hay puntos de carga que coincidan.</td></tr>`;
 }
 $("eq").oninput=evTable;
 

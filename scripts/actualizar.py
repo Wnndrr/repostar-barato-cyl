@@ -136,30 +136,95 @@ def gasolineras():
         return d, False
 
 
+URL_DGT_CARGA = "https://nap.dgt.es/datex2/v3/miterd/EnergyInfrastructureTablePublication/electrolineras.xml"
+PROV_CYL = {"Ávila": 0, "Avila": 0, "Burgos": 1, "León": 2, "Leon": 2, "Palencia": 3, "Salamanca": 4,
+            "Segovia": 5, "Soria": 6, "Valladolid": 7, "Zamora": 8}
+CP_CYL = {"05": 0, "09": 1, "24": 2, "34": 3, "37": 4, "40": 5, "42": 6, "47": 7, "49": 8}
+
+
+def tipo_conector(t):
+    t = t.lower()
+    if "combo" in t:
+        return "CCS"
+    if "chademo" in t:
+        return "CHAdeMO"
+    if "t2" in t:
+        return "Type 2"
+    if "t1" in t:
+        return "Type 1"
+    if "domestic" in t or "schuko" in t:
+        return "Schuko"
+    if "tesla" in t:
+        return "Tesla"
+    return t
+
+
 def puntos_carga():
-    print("Descargando puntos de carga de la Junta…")
+    """Puntos de carga de Castilla y León desde el Punto de Acceso Nacional de la DGT (CC BY, diario)."""
+    print("Descargando puntos de carga de la DGT…")
     try:
-        res = []
-        for off in (0, 100, 200):
-            res += descargar_json(API_JUNTA_CARGA.format(off), intentos=2).get("results", [])
-        vistos, out = set(), []
-        for x in res:
-            if not x.get("dd"):
+        import io
+        import xml.etree.ElementTree as ET
+        if os.environ.get("SIN_DESCARGA"):
+            raise RuntimeError("descarga desactivada (SIN_DESCARGA)")
+        req = urllib.request.Request(URL_DGT_CARGA, headers={"User-Agent": "RepostarBaratoCyL/1.0"})
+        with urllib.request.urlopen(req, timeout=240) as r:
+            crudo = r.read()
+        grupos = {}
+        for _, el in ET.iterparse(io.BytesIO(crudo), events=("end",)):
+            if not el.tag.endswith("}energyInfrastructureSite"):
                 continue
-            tipos = "/".join(t.replace("Mennekes (Type 2 sin cable)", "Type 2")
-                             .replace("Mennekes (Type 2)", "Type 2").replace(" (DC)", "")
-                             .replace("CCS Combo", "CCS").replace("COMBO - Cable", "CCS")
-                             for t in (x.get("tipo") or []))
-            fila = [round(x["dd"]["lat"], 4), round(x["dd"]["lon"], 4), (x.get("nombre") or "").strip(),
-                    (x.get("direccion") or "").strip(), (x.get("operador") or "").strip(), tipos]
-            k = tuple(fila[:3])
-            if k not in vistos:
-                vistos.add(k)
-                out.append(fila)
-        if len(out) > 50:
+            def txt(path):
+                x = el.find(path)
+                return (x.text or "").strip() if x is not None and x.text else ""
+            lineas = {}
+            for v in el.findall(".//{*}addressLine//{*}value"):
+                if ":" in (v.text or ""):
+                    k, val = v.text.split(":", 1)
+                    lineas[k.strip()] = val.strip()
+            cp = txt(".//{*}postcode")
+            prov = PROV_CYL.get(lineas.get("Provincia", ""), CP_CYL.get(cp[:2]))
+            if prov is None or not lineas.get("Comunidad Autónoma", "Castilla y León").startswith("Castilla y Le"):
+                el.clear()
+                continue
+            try:
+                lat, lon = float(txt(".//{*}latitude")), float(txt(".//{*}longitude"))
+            except ValueError:
+                el.clear()
+                continue
+            nombre = txt("./{*}name//{*}value")
+            operador = txt("./{*}operator//{*}value")
+            tipos, potencia, puntos = set(), 0, 0
+            for rp in el.iter():
+                if rp.tag.endswith("}refillPoint"):
+                    puntos += 1
+                elif rp.tag.endswith("}connectorType") and rp.text:
+                    tipos.add(tipo_conector(rp.text))
+                elif rp.tag.endswith("}maxPowerAtSocket") and rp.text:
+                    try:
+                        potencia = max(potencia, float(rp.text) / 1000)
+                    except ValueError:
+                        pass
+            municipio = lineas.get("Municipio", "")
+            direccion = lineas.get("Dirección", "")
+            clave = (round(lat, 4), round(lon, 4), operador)
+            g = grupos.setdefault(clave, {"lat": lat, "lon": lon, "nombre": re.sub(r"\s*Estaci[oó]n de carga \d+$", "", nombre) or nombre,
+                                          "dir": direccion + (f", {municipio}" if municipio else "") + f" ({NOMBRES_PROV[prov]})",
+                                          "op": operador, "tipos": set(), "kw": 0, "n": 0,
+                                          "horario": txt(".//{*}operatingHours/{*}label")})
+            g["tipos"] |= tipos
+            g["kw"] = max(g["kw"], potencia)
+            g["n"] += puntos
+            el.clear()
+        orden = ["CCS", "CHAdeMO", "Type 2", "Type 1", "Schuko", "Tesla"]
+        out = [[round(g["lat"], 5), round(g["lon"], 5), g["nombre"], g["dir"], g["op"],
+                "/".join(sorted(g["tipos"], key=lambda x: orden.index(x) if x in orden else 99)),
+                round(g["kw"]), g["n"], g["horario"]] for g in grupos.values()]
+        if len(out) > 200:
             (DATOS / "puntos-carga.json").write_text(json.dumps(out, ensure_ascii=False), encoding="utf-8")
-            print(f"  {len(out)} puntos de carga")
+            print(f"  {len(out)} ubicaciones de carga en Castilla y León")
             return out
+        raise RuntimeError(f"respuesta sospechosa: {len(out)} ubicaciones")
     except Exception as e:  # noqa: BLE001
         print(f"AVISO: uso los puntos de carga guardados. Motivo: {e}", file=sys.stderr)
     return json.loads((DATOS / "puntos-carga.json").read_text(encoding="utf-8"))
