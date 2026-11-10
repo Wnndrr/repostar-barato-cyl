@@ -33,6 +33,8 @@ jobs:
       - name: Descargar precios y generar la web
         env:
           URL_WEB: ${{ vars.URL_WEB }}
+          MANTENIMIENTO: ${{ vars.MANTENIMIENTO }}
+          MENSAJE_MANTENIMIENTO: ${{ vars.MENSAJE_MANTENIMIENTO }}
         run: python scripts/actualizar.py
 
       - name: Guardar los últimos precios en el repositorio

@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Estamos haciendo cambios · Repostar Barato CyL</title>
+<meta name="description" content="Repostar Barato CyL vuelve enseguida con los precios de las gasolineras de Castilla y León.">
+<link rel="icon" href="/logo-192.png">
+<meta name="theme-color" content="#0b5cad">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700&family=Barlow:wght@400;500&display=swap">
+<style>
+:root{--bg:#f3f5f7;--surface:#fff;--fg:#17212b;--muted:#5b6876;--line:#d9dfe5;--accent:#0b5cad}
+@media (prefers-color-scheme: dark){:root{--bg:#0e141a;--surface:#151d25;--fg:#e6ebf0;--muted:#97a3b0;--line:#26323d;--accent:#5aa2ec;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;display:grid;place-items:center;background:var(--bg);color:var(--fg);
+  font:18px/1.6 "Barlow",system-ui,-apple-system,"Segoe UI",sans-serif;
+  padding:24px max(16px,env(safe-area-inset-right,0px)) 24px max(16px,env(safe-area-inset-left,0px))}
+main{max-width:520px;width:100%;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:32px 26px;text-align:center}
+img{width:72px;height:72px}
+h1{font-family:"Barlow Condensed","Arial Narrow",Arial,sans-serif;font-size:clamp(30px,7vw,40px);line-height:1.1;margin:14px 0 10px;text-wrap:balance}
+p{margin:0 0 10px;color:var(--muted)}
+.bar{height:6px;border-radius:3px;background:var(--line);overflow:hidden;margin:22px 0 18px}
+.bar i{display:block;height:100%;width:40%;background:var(--accent);border-radius:3px;animation:m 1.6s ease-in-out infinite}
+@keyframes m{0%{transform:translateX(-100%)}100%{transform:translateX(250%)}}
+small{color:var(--muted);font-size:14px}
+a{color:var(--accent)}
+</style>
+</head>
+<body>
+<main>
+  <img src="/logo-192.png" width="72" height="72" alt="">
+  <h1>Estamos haciendo cambios en la web</h1>
+  <p>__MENSAJE__</p>
+  <div class="bar"><i></i></div>
+  <small>Repostar Barato CyL · <a href="mailto:repostarbaratocyl@gmail.com">repostarbaratocyl@gmail.com</a> · <a href="/aviso-legal.html">Aviso legal</a></small>
+</main>
+</body>
+</html>

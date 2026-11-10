@@ -5,6 +5,7 @@ Crea la carpeta  sitio/  con la web lista para publicar.
 Solo usa la biblioteca estándar de Python (no hay que instalar nada).
 """
 import json
+from html import escape as html_escape
 import os
 import ssl
 import re
@@ -689,6 +690,18 @@ def main():
         + "</urlset>\n", encoding="utf-8")
     (SALIDA / "robots.txt").write_text(f"User-agent: *\nAllow: /\nSitemap: {URL_WEB}/sitemap.xml\n", encoding="utf-8")
     (SALIDA / ".nojekyll").write_text("", encoding="utf-8")
+
+    # Modo mantenimiento: en GitHub, variable MANTENIMIENTO = si
+    if os.environ.get("MANTENIMIENTO", "").strip().lower() in ("si", "sí", "1", "true", "on"):
+        msg = os.environ.get("MENSAJE_MANTENIMIENTO", "").strip() or \
+            "Estamos mejorando la web para ofrecerte más información. Volvemos muy pronto con los precios actualizados."
+        aviso = (RAIZ / "plantillas" / "mantenimiento.html").read_text(encoding="utf-8").replace("__MENSAJE__", html_escape(msg))
+        respetar = {"aviso-legal.html", "privacidad.html", "cookies.html", "contacto.html"}
+        for f in SALIDA.rglob("*.html"):
+            if f.name not in respetar:
+                f.write_text(aviso, encoding="utf-8")
+        (SALIDA / "404.html").write_text(aviso, encoding="utf-8")
+        print("MODO MANTENIMIENTO ACTIVADO")
 
     print(f"Web generada en {SALIDA} ({'precios nuevos' if nuevos else 'precios guardados'})")
 
