@@ -317,7 +317,8 @@ def generar_articulos(datos, reemplazos):
     def pagina(titulo, desc, publicado, cuerpo, ruta, raiz, relacionados):
         html = plantilla
         for k, v in {**reemplazos, "__TITULO__": esc(titulo), "__DESCRIPCION__": esc(desc), "__PUBLICADO__": publicado,
-                     "__CUERPO__": cuerpo, "__RUTA__": ruta, "__RAIZ__": raiz, "__RELACIONADOS__": relacionados}.items():
+                     "__CUERPO__": cuerpo, "__RUTA__": ruta, "__RAIZ__": raiz, "__RELACIONADOS__": relacionados,
+                     "__HEADEXTRA__": head_extra(ruta, titulo, desc, raiz)}.items():
             html = html.replace(k, v)
         return html
 
@@ -346,6 +347,205 @@ def generar_articulos(datos, reemplazos):
     return portada, ["consejos/"] + [f"consejos/{a['slug']}/" for a in arts]
 
 
+# ---------------------------------------------------------------------------
+# Páginas por pueblo y por provincia (gasolineras/<pueblo>/ y provincia/<prov>/)
+# ---------------------------------------------------------------------------
+import math
+import unicodedata
+
+
+def nombre_pueblo(m):
+    """'Adrada (La)' -> 'La Adrada'."""
+    r = re.match(r"^(.*?)\s*\((La|El|Los|Las|L')\)$", m.strip())
+    return f"{r.group(2)} {r.group(1)}" if r else m.strip()
+
+
+def slug(texto):
+    s = unicodedata.normalize("NFD", texto).encode("ascii", "ignore").decode().lower()
+    return re.sub(r"[^a-z0-9]+", "-", s).strip("-")
+
+
+def km(a, b):
+    la1, lo1, la2, lo2 = map(math.radians, (a[0], a[1], b[0], b[1]))
+    h = math.sin((la2 - la1) / 2) ** 2 + math.cos(la1) * math.cos(la2) * math.sin((lo2 - lo1) / 2) ** 2
+    return 12742 * math.asin(math.sqrt(h))
+
+
+def agrupar_pueblos(G):
+    pueblos = {}
+    for g in G:
+        pueblos.setdefault((g[1], g[0]), []).append(g)
+    nombres = [nombre_pueblo(m) for m, _ in pueblos]
+    repetidos = {n for n in nombres if nombres.count(n) > 1}
+    out = []
+    for (m, pr), gs in pueblos.items():
+        n = nombre_pueblo(m)
+        s = slug(n) + (f"-{slug(NOMBRES_PROV[pr])}" if n in repetidos else "")
+        c = (sum(g[8] for g in gs) / len(gs), sum(g[9] for g in gs) / len(gs))
+        out.append({"municipio": m, "nombre": n, "prov": pr, "slug": s, "gs": gs, "centro": c})
+    return out
+
+
+def mapa_slugs(G):
+    return {f"{p['municipio']}|{p['prov']}": p["slug"] for p in agrupar_pueblos(G)}
+
+
+def ruta_maps(g):
+    return f"https://www.google.com/maps/dir/?api=1&amp;destination={g[8]},{g[9]}"
+
+
+def tabla_gasolineras(gs, k_orden=5):
+    gs = sorted(gs, key=lambda g: (g[k_orden] or 9e9, g[6] or 9e9))
+    mins = {k: min((g[k] for g in gs if g[k]), default=0) for k in (5, 6, 7)}
+    filas = ""
+    for g in gs:
+        celdas = ""
+        for k in (5, 6, 7):
+            if g[k]:
+                chip = ' <span class="chip">Más barata</span>' if g[k] == mins[k] and len(gs) > 1 else ""
+                celdas += f'<td class="n">{eur(g[k])}{chip}</td>'
+            else:
+                celdas += '<td><small>—</small></td>'
+        filas += (f'<tr><td><strong>{esc(g[2])}</strong><small><a href="{ruta_maps(g)}" target="_blank" rel="noopener">'
+                  f'{esc(g[3])} ↗</a></small><small>{esc(g[4])}</small></td>{celdas}</tr>')
+    return ('<div class="datos"><div class="tb"><table class="pt"><tr><th>Gasolinera</th><th>Gasolina 95</th><th>Diésel</th>'
+            f'<th>Gasolina 98</th></tr>{filas}</table></div></div>')
+
+
+def json_ld(obj):
+    return '<script type="application/ld+json">' + json.dumps(obj, ensure_ascii=False) + "</script>"
+
+
+def generar_pueblos(datos, reemplazos, head_extra):
+    G, fecha = datos["gasolineras"], fecha_bonita(datos["fecha"])
+    plantilla = (RAIZ / "plantillas" / "pagina.html").read_text(encoding="utf-8")
+    pueblos = agrupar_pueblos(G)
+    medias_prov = {}
+    for i in range(len(NOMBRES_PROV)):
+        xs = [g for g in G if g[0] == i]
+        medias_prov[i] = {k: media([g[k] for g in xs if g[k]]) for k in (5, 6)}
+
+    def pagina(ruta, raiz, titulo, desc, migas, cuerpo, aside, extra=""):
+        html = plantilla
+        hx = head_extra(ruta, titulo, desc, raiz) + extra
+        for k, v in {**reemplazos, "__TITULO__": esc(titulo), "__DESCRIPCION__": esc(desc), "__RUTA__": ruta,
+                     "__RAIZ__": raiz, "__MIGAS__": migas, "__CUERPO__": cuerpo, "__ASIDE__": aside,
+                     "__HEADEXTRA__": hx}.items():
+            html = html.replace(k, v)
+        d = SALIDA / ruta
+        d.mkdir(parents=True, exist_ok=True)
+        (d / "index.html").write_text(html, encoding="utf-8")
+
+    rutas = []
+    for p in pueblos:
+        gs, pr, n = p["gs"], p["prov"], p["nombre"]
+        np_ = NOMBRES_PROV[pr]
+        v95 = sorted(g[5] for g in gs if g[5])
+        vdi = sorted(g[6] for g in gs if g[6])
+        cercanos = sorted((q for q in pueblos if q is not p), key=lambda q: km(p["centro"], q["centro"]))[:8]
+        # texto con datos reales
+        frases = [f"En {esc(n)} ({np_}) hay {len(gs)} gasolinera{'s' if len(gs) != 1 else ''} que comunica{'n' if len(gs) != 1 else ''} sus precios al Ministerio."]
+        for v, nom, k in ((v95, "gasolina 95", 5), (vdi, "diésel", 6)):
+            if not v:
+                continue
+            m = media(v)
+            dif = m - medias_prov[pr][k]
+            comp = ("prácticamente igual que" if abs(dif) < 5 else
+                    f"{eur(abs(dif))} {'más barato' if dif < 0 else 'más caro'} que")
+            frases.append(f"El litro de {nom} cuesta de media {eur(m)}"
+                          + (f" (de {eur(v[0])} a {eur(v[-1])})" if len(v) > 1 else "")
+                          + f", {comp} la media de la provincia de {np_} ({eur(medias_prov[pr][k])}).")
+        mejor_cerca = []
+        for q in cercanos[:5]:
+            qv = [g[5] for g in q["gs"] if g[5]]
+            if qv and v95 and min(qv) < v95[0]:
+                mejor_cerca.append((q, min(qv)))
+        if mejor_cerca:
+            q, pv = min(mejor_cerca, key=lambda x: x[1])
+            frases.append(f'Si te pilla de camino, en <a href="../{q["slug"]}/">{esc(q["nombre"])}</a>, a unos '
+                          f'{round(km(p["centro"], q["centro"]))} km, la gasolina 95 está desde {eur(pv)}.')
+        cuerpo = "<p>" + " ".join(frases) + "</p>\n" + tabla_gasolineras(gs)
+        cuerpo += ('<p>Toca la dirección de cada gasolinera para abrir la ruta en Google Maps. '
+                   'Los precios se actualizan dos veces al día con los datos del Ministerio para la Transición Ecológica.</p>')
+        lis = "".join(
+            f'<li><a href="../{q["slug"]}/">{esc(q["nombre"])}</a><small>{round(km(p["centro"], q["centro"]))} km</small></li>'
+            for q in cercanos)
+        aside = (f'<aside class="mas"><h2>Pueblos cercanos</h2><ul class="lista">{lis}</ul>'
+                 f'<p style="margin-top:16px"><a href="../../provincia/{slug(np_)}/">Ver todas las gasolineras de la provincia de {np_} →</a></p></aside>')
+        migas = (f'<a href="../../">Inicio</a> › <a href="../../provincia/{slug(np_)}/">{np_}</a> › {esc(n)}')
+        precio_txt = f" Gasolina 95 desde {eur(v95[0])}" if v95 else ""
+        precio_txt += f", diésel desde {eur(vdi[0])}" if vdi else ""
+        titulo = f"Gasolineras baratas en {n} hoy"
+        desc = f"Precio de la gasolina y el diésel hoy en {n} ({np_}).{precio_txt}. {len(gs)} gasolinera{'s' if len(gs) != 1 else ''}, actualizado a diario."
+        ld = json_ld({"@context": "https://schema.org", "@graph": [
+            {"@type": "BreadcrumbList", "itemListElement": [
+                {"@type": "ListItem", "position": 1, "name": "Inicio", "item": URL_WEB + "/"},
+                {"@type": "ListItem", "position": 2, "name": np_, "item": f"{URL_WEB}/provincia/{slug(np_)}/"},
+                {"@type": "ListItem", "position": 3, "name": n, "item": f"{URL_WEB}/gasolineras/{p['slug']}/"}]},
+            {"@type": "ItemList", "itemListElement": [
+                {"@type": "ListItem", "position": i + 1, "item": {
+                    "@type": "GasStation", "name": g[2],
+                    "address": {"@type": "PostalAddress", "streetAddress": g[3], "addressLocality": n,
+                                "addressRegion": np_, "addressCountry": "ES"},
+                    "geo": {"@type": "GeoCoordinates", "latitude": g[8], "longitude": g[9]}}}
+                for i, g in enumerate(gs)]}]})
+        ruta = f"gasolineras/{p['slug']}/"
+        pagina(ruta, "../../", titulo, desc, migas, cuerpo, aside, ld)
+        rutas.append(ruta)
+
+    # Provincias
+    for i, np_ in enumerate(NOMBRES_PROV):
+        ps = sorted((p for p in pueblos if p["prov"] == i), key=lambda p: slug(p["nombre"]))
+        gs = [g for p in ps for g in p["gs"]]
+        top = sorted((g for g in gs if g[5]), key=lambda g: g[5])[:15]
+        topd = sorted((g for g in gs if g[6]), key=lambda g: g[6])[:15]
+        nombre_de = {(p["municipio"], p["prov"]): p for p in ps}
+
+        def tabla_top(xs, k, nom):
+            filas = "".join(
+                f'<tr><td>{j + 1}</td><td><strong>{esc(g[2])}</strong><small><a href="{ruta_maps(g)}" target="_blank" rel="noopener">{esc(g[3])} ↗</a></small></td>'
+                f'<td><a href="../../gasolineras/{nombre_de[(g[1], g[0])]["slug"]}/">{esc(nombre_de[(g[1], g[0])]["nombre"])}</a></td><td class="n">{eur(g[k])}</td></tr>'
+                for j, g in enumerate(xs))
+            return caja(f"{nom}: las 15 más baratas de {np_}",
+                        "<tr><th>#</th><th>Gasolinera</th><th>Pueblo</th><th>Precio</th></tr>" + filas, "", fecha)
+
+        lis = "".join(
+            f'<li><a href="../../gasolineras/{p["slug"]}/">{esc(p["nombre"])}</a>'
+            f'<small>{eur(min(g[5] for g in p["gs"] if g[5])) if any(g[5] for g in p["gs"]) else ""}</small></li>'
+            for p in ps)
+        cuerpo = (f"<p>La provincia de {np_} tiene {len(gs)} gasolineras repartidas en {len(ps)} municipios. "
+                  f"El precio medio hoy es de {eur(medias_prov[i][5])} el litro de gasolina 95 y "
+                  f"{eur(medias_prov[i][6])} el de diésel.</p>"
+                  + tabla_top(top, 5, "Gasolina 95") + tabla_top(topd, 6, "Diésel")
+                  + f'<h2>Gasolineras por pueblo en {np_}</h2><p>Precio más bajo de gasolina 95 en cada municipio:</p><ul class="lista">{lis}</ul>')
+        otras = "".join(f'<li><a href="../{slug(o)}/">{o}</a></li>' for o in NOMBRES_PROV if o != np_)
+        aside = f'<aside class="mas"><h2>Otras provincias</h2><ul class="lista">{otras}</ul></aside>'
+        ruta = f"provincia/{slug(np_)}/"
+        pagina(ruta, "../../", f"Gasolineras baratas en la provincia de {np_} hoy",
+               f"Las gasolineras más baratas de {np_} hoy y el precio de la gasolina y el diésel en sus {len(ps)} municipios, actualizado a diario.",
+               f'<a href="../../">Inicio</a> › {np_}', cuerpo, aside)
+        rutas.append(ruta)
+
+    # Bloque de enlaces para la portada
+    bloques = ""
+    for i, np_ in enumerate(NOMBRES_PROV):
+        ps = sorted((p for p in pueblos if p["prov"] == i), key=lambda p: slug(p["nombre"]))
+        lis = "".join(f'<li><a href="gasolineras/{p["slug"]}/">{esc(p["nombre"])}</a></li>' for p in ps)
+        bloques += (f'<details><summary>{np_} <span>{len(ps)} pueblos</span></summary>'
+                    f'<p><a href="provincia/{slug(np_)}/">Ver las más baratas de {np_} →</a></p><ul class="lista">{lis}</ul></details>\n')
+    return rutas, bloques
+
+
+def head_extra(ruta, titulo, desc, raiz):
+    url = f"{URL_WEB}/{ruta}"
+    return (f'<link rel="icon" href="{raiz}logo-192.png" type="image/png">\n'
+            f'<link rel="apple-touch-icon" href="{raiz}logo-512.png">\n'
+            f'<meta property="og:type" content="website">\n<meta property="og:site_name" content="Repostar Barato CyL">\n'
+            f'<meta property="og:locale" content="es_ES">\n<meta property="og:url" content="{url}">\n'
+            f'<meta property="og:title" content="{esc(titulo)}">\n<meta property="og:description" content="{esc(desc)}">\n'
+            f'<meta property="og:image" content="{URL_WEB}/logo-horizontal.png">\n<meta name="twitter:card" content="summary">')
+
+
 def main():
     datos, nuevos = gasolineras()
     ev = puntos_carga()
@@ -365,9 +565,22 @@ def main():
         "__URL__": URL_WEB,
     }
     portada, paginas_art = generar_articulos(datos, reemplazos)
+    paginas_pueblo, bloques = generar_pueblos(datos, reemplazos, head_extra)
     reemplazos["__CONSEJOS__"] = portada
+    reemplazos["__PUEBLOS__"] = bloques
+    reemplazos["__SLUGS__"] = j(mapa_slugs(datos["gasolineras"]))
+    cabeceras = {
+        "index.html": head_extra("", "Gasolineras baratas en Castilla y León hoy",
+                                 "Precio de la gasolina y el diésel hoy en todas las gasolineras de Castilla y León, actualizado cada día.", "")
+        + json_ld({"@context": "https://schema.org", "@type": "WebSite", "name": "Repostar Barato CyL", "url": URL_WEB + "/",
+                   "inLanguage": "es-ES", "publisher": {"@type": "Organization", "name": "Repostar Barato CyL",
+                                                         "logo": URL_WEB + "/logo-512.png"}}),
+        "mapa.html": head_extra("mapa.html", "Mapa satélite de gasolineras de Castilla y León",
+                                "Todas las gasolineras de Castilla y León sobre imágenes de satélite, con sus precios de hoy.", ""),
+    }
     for nombre in ("index.html", "mapa.html"):
         html = (RAIZ / "plantillas" / nombre).read_text(encoding="utf-8")
+        reemplazos["__HEADEXTRA__"] = cabeceras[nombre]
         for k, v in reemplazos.items():
             html = html.replace(k, v)
         (SALIDA / nombre).write_text(html, encoding="utf-8")
@@ -377,10 +590,13 @@ def main():
         if f.is_file():
             shutil.copy(f, SALIDA / f.name)
 
-    paginas = ["", "mapa.html"] + paginas_art + sorted(f.name for f in (RAIZ / "paginas").glob("*.html"))
+    legales = sorted(f.name for f in (RAIZ / "paginas").glob("*.html"))
+    paginas = ["", "mapa.html"] + paginas_art + paginas_pueblo + [x for x in legales if x == "contacto.html"]
+    hoy = time.strftime("%Y-%m-%d")
     (SALIDA / "sitemap.xml").write_text(
         '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
-        + "".join(f"  <url><loc>{URL_WEB}/{p}</loc></url>\n" for p in paginas) + "</urlset>\n", encoding="utf-8")
+        + "".join(f"  <url><loc>{URL_WEB}/{p}</loc><lastmod>{hoy}</lastmod></url>\n" for p in paginas)
+        + "</urlset>\n", encoding="utf-8")
     (SALIDA / "robots.txt").write_text(f"User-agent: *\nAllow: /\nSitemap: {URL_WEB}/sitemap.xml\n", encoding="utf-8")
     (SALIDA / ".nojekyll").write_text("", encoding="utf-8")
 

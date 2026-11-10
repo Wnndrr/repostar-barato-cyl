@@ -6,6 +6,7 @@
 <title>Gasolineras baratas en Castilla y León hoy · Repostar Barato CyL</title>
 <meta name="description" content="Precio de la gasolina y el diésel hoy en las __NTOT__ gasolineras de Castilla y León. Mapa, ranking por provincia y pueblo, actualizado cada día con datos del Ministerio.">
 <link rel="canonical" href="__URL__/">
+__HEADEXTRA__
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5106525369154021" crossorigin="anonymous"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap">
@@ -36,6 +37,7 @@ body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:16
 header.top{background:var(--surface);border-bottom:1px solid var(--line)}
 header.top .wrap{display:flex;align-items:center;justify-content:space-between;gap:12px 20px;padding-block:14px;flex-wrap:wrap}
 .brand{font-family:var(--f-display);font-weight:700;font-size:26px;display:flex;align-items:center;gap:10px;color:inherit;text-decoration:none}
+.brand img{display:block;width:34px;height:34px}
 .brand i{display:inline-grid;place-items:center;width:34px;height:34px;border-radius:8px;background:var(--accent);color:#fff;font-style:normal;font-size:18px}
 nav.menu{display:flex;gap:6px 18px;flex-wrap:wrap;font-weight:500;color:var(--muted);font-size:15px;align-items:center}
 nav.menu a{color:inherit;text-decoration:none}
@@ -122,6 +124,15 @@ td.hor{font-size:14px;color:var(--muted);max-width:220px}
 @media (max-width:560px){.evcta{grid-template-columns:auto 1fr}.evcta .go{grid-column:1/-1}}
 
 .info{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:24px}
+.pueblos{display:grid;gap:8px}
+.pueblos details{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:0 16px}
+.pueblos summary{cursor:pointer;padding:14px 0;font-family:var(--f-display);font-weight:600;font-size:21px}
+.pueblos summary span{font-family:var(--f-body);font-size:14px;font-weight:500;color:var(--muted);margin-left:8px}
+.pueblos details p{margin:0 0 8px}
+.pueblos details a{color:var(--accent);text-decoration:none}
+.pueblos .lista{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:6px 18px;padding:0 0 16px;list-style:none;margin:0;font-size:15px}
+a.pueblo{color:inherit;text-decoration:none;border-bottom:1px dotted var(--muted)}
+a.pueblo:hover{color:var(--accent)}
 .info article{min-width:0}
 .info article a{color:inherit;text-decoration:none}
 .info article a:hover h3{color:var(--accent)}
@@ -163,9 +174,9 @@ footer .wrap{padding-block:24px;display:flex;justify-content:space-between;gap:1
 <body>
 
 <header class="top"><div class="wrap">
-  <a class="brand" href="#inicio"><i>⛽</i>Repostar Barato CyL</a>
+  <a class="brand" href="#inicio"><img src="logo-192.png" width="34" height="34" alt="">Repostar Barato CyL</a>
   <nav class="menu" aria-label="Secciones">
-    <a href="#mapa">Mapa</a><a href="#provincias">Provincias</a><a href="#ranking">Todas las gasolineras</a>
+    <a href="#mapa">Mapa</a><a href="#provincias">Provincias</a><a href="#ranking">Todas las gasolineras</a><a href="#pueblos">Pueblos</a>
     <a href="consejos/">Consejos</a>
     <a href="mapa.html">Mapa satélite</a>
     <a class="evlink" href="#electrico">⚡ Coche eléctrico</a>
@@ -216,6 +227,14 @@ footer .wrap{padding-block:24px;display:flex;justify-content:space-between;gap:1
     <h2>Precio mínimo por provincia</h2>
     <p class="sub">Toca una provincia para ver solo sus gasolineras en el mapa y en la lista.</p>
     <div class="provs" id="provs"></div>
+  </section>
+
+  <section id="pueblos">
+    <h2>Gasolineras por pueblo</h2>
+    <p class="sub">Elige tu provincia y tu pueblo para ver todas sus gasolineras ordenadas por precio.</p>
+    <div class="pueblos">
+__PUEBLOS__
+    </div>
   </section>
 
   <a class="evcta" href="#electrico">
@@ -320,6 +339,9 @@ const S=__DATA__;
 // [lat, lon, nombre, dirección, operador, conectores]
 const EV=__EV__;
 const PROV=__PROV__;
+const SLUG=__SLUGS__;
+const urlPueblo=s=>SLUG[s[1]+"|"+s[0]]?`gasolineras/${SLUG[s[1]+"|"+s[0]]}/`:null;
+const nomP=m=>{const r=m.match(/^(.*?)\s*\((La|El|Los|Las|L')\)$/);return r?r[2]+" "+r[1]:m};
 const P=["Ávila","Burgos","León","Palencia","Salamanca","Segovia","Soria","Valladolid","Zamora"];
 const FN={5:"gasolina 95",6:"diésel",7:"gasolina 98"};
 let fuel=5, prov=-1, shown=25, evMode="all";
@@ -421,7 +443,7 @@ function showPick(i){
   if(i<0){$("pick").innerHTML='<span class="muted">Toca cualquier punto del mapa para ver la gasolinera.</span>';return}
   const s=S[i],c=colorOf(i);
   const prices=[[5,"95"],[6,"Diésel"],[7,"98"]].filter(([k])=>s[k]).map(([k,l])=>`<span class="muted">${l}</span> <span class="pr">${fmt(s[k])} €</span>`).join(" &nbsp; ");
-  $("pick").innerHTML=`<div><span class="dot" style="background:${c||"transparent"};border:${c?"0":"1px solid currentColor"}"></span><span class="nm">${esc(s[2])}</span><a class="ad dir" href="${ruta(s)}" target="_blank" rel="noopener">${esc(s[3])} · ${esc(s[1])} (${P[s[0]]})</a><span class="ad">${esc(hor(s[4]))}</span></div><div>${prices||'<span class="muted">No informa precio de gasolina ni diésel</span>'}<div style="margin-top:8px"><a class="btn" href="${ruta(s)}" target="_blank" rel="noopener" style="text-decoration:none;display:inline-block">Cómo llegar ↗</a></div></div>`;
+  $("pick").innerHTML=`<div><span class="dot" style="background:${c||"transparent"};border:${c?"0":"1px solid currentColor"}"></span><span class="nm">${esc(s[2])}</span><a class="ad dir" href="${ruta(s)}" target="_blank" rel="noopener">${esc(s[3])} · ${esc(s[1])} (${P[s[0]]})</a><span class="ad">${esc(hor(s[4]))}</span><a class="ad" href="${urlPueblo(s)}" style="color:var(--accent)">Ver todas las gasolineras de ${esc(nomP(s[1]))} →</a></div><div>${prices||'<span class="muted">No informa precio de gasolina ni diésel</span>'}<div style="margin-top:8px"><a class="btn" href="${ruta(s)}" target="_blank" rel="noopener" style="text-decoration:none;display:inline-block">Cómo llegar ↗</a></div></div>`;
 }
 $("zin").onclick=()=>gasMap.zoom(.7);$("zout").onclick=()=>gasMap.zoom(1.4);$("zre").onclick=()=>gasMap.refit();
 
@@ -451,7 +473,7 @@ function table(){
   $("rtitle").textContent=prov>=0?`Gasolineras de ${P[prov]}`:"Todas las gasolineras de Castilla y León";
   $("rsub").textContent=`Precio de ${FN[fuel]} en euros por litro, de la más barata a la más cara. El color es el mismo que en el mapa.`;
   const vis=xs.slice(0,shown);
-  $("tb").innerHTML=vis.length?vis.map((i,n)=>{const s=S[i],c=colorOf(i);return`<tr><td class="rank">${n+1}</td><td><strong>${esc(s[2])}</strong>${s[fuel]&&s[fuel]===best?'<span class="chip">Más barata</span>':""}<a class="addr dir" href="${ruta(s)}" target="_blank" rel="noopener">${esc(s[3])} ↗</a><span class="addr hor-m">🕒 ${esc(hor(s[4]))}</span></td><td>${esc(s[1])}<span class="addr">${P[s[0]]}</span></td><td class="price">${s[fuel]?`<span class="dot" style="background:${c}"></span>${fmt(s[fuel])} €`:'<span class="addr">No disponible</span>'}</td><td class="hor">${esc(hor(s[4]))}</td></tr>`}).join("")
+  $("tb").innerHTML=vis.length?vis.map((i,n)=>{const s=S[i],c=colorOf(i);return`<tr><td class="rank">${n+1}</td><td><strong>${esc(s[2])}</strong>${s[fuel]&&s[fuel]===best?'<span class="chip">Más barata</span>':""}<a class="addr dir" href="${ruta(s)}" target="_blank" rel="noopener">${esc(s[3])} ↗</a><span class="addr hor-m">🕒 ${esc(hor(s[4]))}</span></td><td><a class="pueblo" href="${urlPueblo(s)}">${esc(nomP(s[1]))}</a><span class="addr">${P[s[0]]}</span></td><td class="price">${s[fuel]?`<span class="dot" style="background:${c}"></span>${fmt(s[fuel])} €`:'<span class="addr">No disponible</span>'}</td><td class="hor">${esc(hor(s[4]))}</td></tr>`}).join("")
     :`<tr><td colspan="5" class="empty">No hay gasolineras que coincidan con “${esc($("q").value)}”.</td></tr>`;
   $("count").textContent=`Mostrando ${vis.length} de ${xs.length}`;
   $("moreBtn").hidden=vis.length>=xs.length;
