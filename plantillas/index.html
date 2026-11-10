@@ -132,6 +132,9 @@ td.hor{font-size:14px;color:var(--muted);max-width:220px}
 .info{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:24px}
 .calc{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px}
 .calc .euro{display:flex;align-items:center;gap:6px}
+.calc .gaswrap{grid-column:1/-1;display:grid;gap:6px}
+.calc .gaswrap select{font-size:15px}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .calc .euro b{color:var(--fg);font-size:17px}
 .calc input[type=number]{width:100%;font:600 18px var(--f-num);padding:9px 12px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--fg)}
 .calcres{margin-top:12px;background:var(--panel);color:var(--panel-fg);border-radius:14px;padding:18px 20px;display:grid;gap:6px}
@@ -266,8 +269,14 @@ footer .wrap{padding-block:24px;display:flex;justify-content:space-between;gap:1
       </label>
       <label class="field" for="cZona"><span>Zona</span><select id="cZona"></select></label>
       <label class="field" for="cDonde"><span>Precio</span>
-        <select id="cDonde"><option value="min">La gasolinera más barata</option><option value="avg">El precio medio</option><option value="max">La gasolinera más cara</option><option value="manual">Otro precio…</option></select>
+        <select id="cDonde"><option value="min">La gasolinera más barata</option><option value="gas">Elegir una gasolinera…</option><option value="avg">El precio medio</option><option value="max">La gasolinera más cara</option><option value="manual">Otro precio…</option></select>
       </label>
+      <div class="field gaswrap" id="cGasW" hidden>
+        <label for="cBusca"><span>Busca la gasolinera por pueblo o marca (en toda la comunidad)</span></label>
+        <input id="cBusca" type="search" placeholder="Ej.: Benavente, Repsol…" autocomplete="off">
+        <label for="cGas" class="vh">Gasolinera</label>
+        <select id="cGas"></select>
+      </div>
       <label class="field" for="cManual" id="cManualW" hidden><span id="cManualL">Precio por litro</span>
         <span class="euro"><input id="cManual" type="number" inputmode="decimal" min="0.1" max="9" step="0.001" placeholder="1,599"><b>€</b></span>
       </label>
@@ -562,35 +571,53 @@ hero();render();evTable();route();
 
 /* Calculadora de litros */
 const nf=(v,d=1)=>v.toLocaleString("es-ES",{minimumFractionDigits:d,maximumFractionDigits:d});
-let calcSt=null; // gasolinera elegida desde el mapa
 $("cZona").innerHTML='<option value="-1">Castilla y León</option>'+P.map((p,k)=>`<option value="${k}">${p}</option>`).join("");
+/* Lista de gasolineras de la zona que venden el combustible elegido, agrupadas por pueblo */
+function listaGas(keep){
+  const f=+$("cComb").value,z=+$("cZona").value,q=norm($("cBusca").value.trim());
+  const xs=S.map((s,i)=>i).filter(i=>{const s=S[i];return s[f]&&(q?norm(s[1]+" "+nomP(s[1])+" "+s[2]+" "+s[3]).includes(q):(z<0||s[0]===z))});
+  xs.sort((a,b)=>nomP(S[a][1]).localeCompare(nomP(S[b][1]),"es")||S[a][f]-S[b][f]);
+  const prev=keep??$("cGas").value;let html="",grupo=null;
+  xs.forEach(i=>{const s=S[i],g=nomP(s[1])+(z<0||q?` (${P[s[0]]})`:"");
+    if(g!==grupo){if(grupo!==null)html+="</optgroup>";html+=`<optgroup label="${esc(g)}">`;grupo=g}
+    html+=`<option value="${i}">${esc(s[2])} · ${esc(s[3].slice(0,38))} · ${fmt(s[f])}${U(f)}</option>`});
+  if(grupo!==null)html+="</optgroup>";
+  $("cGas").innerHTML=html||'<option value="">No hay gasolineras que coincidan</option>';
+  if(prev&&xs.includes(+prev))$("cGas").value=prev;
+}
 function calc(){
   const f=+$("cComb").value,z=+$("cZona").value,modo=$("cDonde").value,din=parseFloat(String($("cDinero").value).replace(",","."));
   const ud=f===12?"kilos":"litros",u1=f===12?"kilo":"litro";
   $("cManualW").hidden=modo!=="manual";$("cManualL").textContent=`Precio por ${u1}`;
-  const xs=S.filter(s=>(z<0||s[0]===z)&&s[f]);
+  $("cGasW").hidden=modo!=="gas";
+  const gv=$("cGas").value,zc=modo==="gas"&&gv!==""?S[+gv][0]:z;
+  const xs=S.filter(s=>(zc<0||s[0]===zc)&&s[f]);
   if(!(din>0)){$("cRes").innerHTML="<p>Escribe cuánto dinero vas a echar.</p>";return}
   if(!xs.length){$("cRes").innerHTML=`<p>No hay gasolineras con ${FN[f]} en esta zona. Prueba con otra zona.</p>`;return}
   const mn=xs.reduce((a,b)=>b[f]<a[f]?b:a),mx=xs.reduce((a,b)=>b[f]>a[f]?b:a),avg=xs.reduce((a,s)=>a+s[f],0)/xs.length;
   let precio,donde="";
   if(modo==="manual"){precio=parseFloat(String($("cManual").value).replace(",","."))*1000;
-    if(!(precio>0)){$("cRes").innerHTML=`<p>Escribe el precio por ${u1}.</p>`;return}
-    if(calcSt!==null&&S[calcSt][f]===Math.round(precio))donde=` en <strong>${esc(S[calcSt][2])}</strong> · ${esc(nomP(S[calcSt][1]))}`}
+    if(!(precio>0)){$("cRes").innerHTML=`<p>Escribe el precio por ${u1}.</p>`;return}}
+  else if(modo==="gas"){const v=$("cGas").value;
+    if(v===""){$("cRes").innerHTML="<p>No hay gasolineras que coincidan con la búsqueda.</p>";return}
+    const s=S[+v];precio=s[f];
+    donde=` en <strong>${esc(s[2])}</strong> · <a href="${urlPueblo(s)}">${esc(nomP(s[1]))}</a> · <a href="${ruta(s)}" target="_blank" rel="noopener">Cómo llegar ↗</a>`}
   else if(modo==="min"){precio=mn[f];donde=` en <strong>${esc(mn[2])}</strong> · <a href="${urlPueblo(mn)}">${esc(nomP(mn[1]))}</a>, la más barata${z<0?" de Castilla y León":" de "+P[z]}`}
   else if(modo==="max"){precio=mx[f];donde=` en <strong>${esc(mx[2])}</strong> · ${esc(nomP(mx[1]))}, la más cara${z<0?" de Castilla y León":" de "+P[z]}`}
   else{precio=avg;donde=`, el precio medio${z<0?" de Castilla y León":" de "+P[z]}`}
   const l=din/(precio/1000),lmn=din/(mn[f]/1000),lmx=din/(mx[f]/1000);
   let cmp="";
-  if(modo!=="min"&&lmn-l>0.05)cmp=`<p class="cmp">En la más barata de la zona (${esc(mn[2])}, ${fmt(mn[f])}${U(f)}) te darían <strong>${nf(lmn)} ${ud}</strong>: <strong>${nf(lmn-l)} ${ud} más</strong> por el mismo dinero.</p>`;
+  if(modo!=="min"&&lmn-l>0.05)cmp=`<p class="cmp">En la más barata ${zc<0?"de Castilla y León":"de "+P[zc]} (${esc(mn[2])}, ${fmt(mn[f])}${U(f)}) te darían <strong>${nf(lmn)} ${ud}</strong>: <strong>${nf(lmn-l)} ${ud} más</strong> por el mismo dinero.</p>`;
   else if(lmn-lmx>0.05)cmp=`<p class="cmp">En la más cara de la zona (${fmt(mx[f])}${U(f)}) solo te darían ${nf(lmx)} ${ud}: <strong>${nf(lmn-lmx)} ${ud} menos</strong>.</p>`;
   $("cRes").innerHTML=`<div class="big">${nf(l)}<small>${ud}</small></div><p>Con <strong>${nf(din,din%1?2:0)} €</strong> de ${FN[f]} a <strong>${fmt(Math.round(precio))}${U(f)}</strong>${donde}.</p>${cmp}`;
 }
-["cDinero","cComb","cZona","cDonde","cManual"].forEach(id=>$(id).addEventListener("input",()=>{if(id!=="cManual"&&id!=="cDinero")calcSt=null;calc()}));
+["cDinero","cDonde","cManual","cGas"].forEach(id=>$(id).addEventListener("input",calc));
+["cComb","cZona","cBusca"].forEach(id=>$(id).addEventListener("input",()=>{listaGas();calc()}));
 function calcEn(i){const s=S[i];const f=s[fuel]?fuel:[5,6,7,10,11,12].find(k=>s[k]);if(!f)return;
-  calcSt=i;$("cComb").value=f;$("cZona").value=s[0];$("cDonde").value="manual";$("cManual").value=(s[f]/1000).toFixed(3);calc();
+  $("cComb").value=f;$("cZona").value=s[0];$("cDonde").value="gas";$("cBusca").value="";listaGas(String(i));calc();
   $("calculadora").scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"})}
-document.querySelectorAll("[data-f]").forEach(b=>b.addEventListener("click",()=>{if($("cDonde").value!=="manual"){$("cComb").value=b.dataset.f;calc()}}));
-calc();
+document.querySelectorAll("[data-f]").forEach(b=>b.addEventListener("click",()=>{if(!["manual","gas"].includes($("cDonde").value)){$("cComb").value=b.dataset.f;listaGas();calc()}}));
+listaGas();calc();
 
 /* Instalar la web como app */
 (()=>{const b=$("instalar");let aviso=null;
