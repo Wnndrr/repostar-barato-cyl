@@ -56,7 +56,8 @@ nav.menu a.evlink:hover{background:var(--ev-soft)}
 .led{font-family:var(--f-num);font-weight:700;font-size:32px;color:var(--led);text-shadow:0 0 12px rgba(255,176,32,.35);font-variant-numeric:tabular-nums;white-space:nowrap}
 .led small{font-size:14px;color:#c48a1c;margin-left:4px}
 
-main .wrap{display:grid;gap:40px;padding-block:32px 48px}
+main .wrap{display:grid;grid-template-columns:minmax(0,1fr);gap:40px;padding-block:32px 48px}
+main .wrap>*{min-width:0}
 h2{font-family:var(--f-display);font-weight:700;font-size:30px;margin:0 0 4px;text-wrap:balance}
 .sub{color:var(--muted);margin:0 0 16px;max-width:70ch}
 .controls{display:flex;flex-wrap:wrap;gap:12px;align-items:end;margin-bottom:14px}
@@ -143,6 +144,13 @@ footer .wrap{padding-block:24px;display:flex;justify-content:space-between;gap:1
 .evlegend{display:flex;gap:16px;flex-wrap:wrap;font-size:14px;color:var(--muted);margin-top:10px}
 .callout{background:var(--warn-soft);color:var(--warn);border-radius:12px;padding:14px 16px;font-size:15px}
 @media (max-width:760px){.hero .wrap{grid-template-columns:1fr}}
+@media (max-width:620px){
+  table{min-width:0}
+  th,td{padding:10px 8px}
+  #ranking th:nth-child(5),#ranking td.hor,#ranking th:first-child,#ranking td.rank{display:none}
+  td.price{font-size:15px}
+  .dot{margin-right:5px}
+}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 
