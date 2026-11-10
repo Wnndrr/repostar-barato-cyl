@@ -117,6 +117,9 @@ def gasolineras():
                 precio(s["Precio Gasolina 98 E5"]) or precio(s["Precio Gasolina 98 E10"]),
                 round(float(s["Latitud"].replace(",", ".")), 5),
                 round(float(s["Longitud (WGS84)"].replace(",", ".")), 5),
+                precio(s.get("Precio Gases licuados del petróleo", "")),  # 10 autogás (GLP), €/l
+                precio(s.get("Precio Adblue", "")),                       # 11 AdBlue, €/l
+                precio(s.get("Precio Gas Natural Comprimido", "")),       # 12 gas natural (GNC), €/kg
             ])
         if len(filas) < 500:
             raise RuntimeError(f"Respuesta sospechosa: solo {len(filas)} gasolineras")
@@ -127,7 +130,10 @@ def gasolineras():
         return datos, True
     except Exception as e:  # noqa: BLE001
         print(f"AVISO: uso los últimos precios guardados. Motivo: {e}", file=sys.stderr)
-        return json.loads((DATOS / "gasolineras.json").read_text(encoding="utf-8")), False
+        d = json.loads((DATOS / "gasolineras.json").read_text(encoding="utf-8"))
+        for g in d["gasolineras"]:  # datos antiguos sin los combustibles nuevos
+            g.extend([0] * (13 - len(g)))
+        return d, False
 
 
 def puntos_carga():
@@ -412,6 +418,23 @@ def tabla_gasolineras(gs, k_orden=5):
             f'<th>Gasolina 98</th></tr>{filas}</table></div></div>')
 
 
+OTROS = ((10, "Autogás (GLP)", "€/l"), (11, "AdBlue", "€/l"), (12, "Gas natural (GNC)", "€/kg"))
+
+
+def tabla_otros(gs):
+    cols = [c for c in OTROS if any(len(g) > c[0] and g[c[0]] for g in gs)]
+    xs = [g for g in gs if any(g[c[0]] for c in cols)]
+    if not cols:
+        return ""
+    cab = "".join(f"<th>{n}</th>" for _, n, _ in cols)
+    filas = "".join(
+        f'<tr><td><strong>{esc(g[2])}</strong><small><a href="{ruta_maps(g)}" target="_blank" rel="noopener">{esc(g[3])} ↗</a></small></td>'
+        + "".join(f'<td class="n">{eur(g[k]).replace(" €", " " + u)}</td>' if g[k] else "<td><small>—</small></td>" for k, _, u in cols)
+        + "</tr>" for g in xs)
+    return ('<h2>Otros combustibles</h2><div class="datos"><div class="tb"><table class="ot">'
+            f'<tr><th>Gasolinera</th>{cab}</tr>{filas}</table></div></div>')
+
+
 def json_ld(obj):
     return '<script type="application/ld+json">' + json.dumps(obj, ensure_ascii=False) + "</script>"
 
@@ -464,7 +487,7 @@ def generar_pueblos(datos, reemplazos, head_extra):
             q, pv = min(mejor_cerca, key=lambda x: x[1])
             frases.append(f'Si te pilla de camino, en <a href="../{q["slug"]}/">{esc(q["nombre"])}</a>, a unos '
                           f'{round(km(p["centro"], q["centro"]))} km, la gasolina 95 está desde {eur(pv)}.')
-        cuerpo = "<p>" + " ".join(frases) + "</p>\n" + tabla_gasolineras(gs)
+        cuerpo = "<p>" + " ".join(frases) + "</p>\n" + tabla_gasolineras(gs) + tabla_otros(gs)
         cuerpo += ('<p>Toca la dirección de cada gasolinera para abrir la ruta en Google Maps. '
                    'Los precios se actualizan dos veces al día con los datos del Ministerio para la Transición Ecológica.</p>')
         lis = "".join(
@@ -543,7 +566,9 @@ def head_extra(ruta, titulo, desc, raiz):
             f'<meta property="og:type" content="website">\n<meta property="og:site_name" content="Repostar Barato CyL">\n'
             f'<meta property="og:locale" content="es_ES">\n<meta property="og:url" content="{url}">\n'
             f'<meta property="og:title" content="{esc(titulo)}">\n<meta property="og:description" content="{esc(desc)}">\n'
-            f'<meta property="og:image" content="{URL_WEB}/logo-horizontal.png">\n<meta name="twitter:card" content="summary">')
+            f'<meta property="og:image" content="{URL_WEB}/logo-horizontal.png">\n<meta name="twitter:card" content="summary">\n'
+            '<link rel="manifest" href="/manifest.webmanifest">\n<meta name="theme-color" content="#121a22">\n'
+            '<script>if("serviceWorker" in navigator)addEventListener("load",()=>navigator.serviceWorker.register("/sw.js").catch(()=>{}))</script>')
 
 
 def main():
