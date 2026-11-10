@@ -688,7 +688,7 @@ def main():
         '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
         + "".join(f"  <url><loc>{URL_WEB}/{p}</loc><lastmod>{hoy}</lastmod></url>\n" for p in paginas)
         + "</urlset>\n", encoding="utf-8")
-    (SALIDA / "robots.txt").write_text(f"User-agent: *\nAllow: /\nSitemap: {URL_WEB}/sitemap.xml\n", encoding="utf-8")
+    (SALIDA / "robots.txt").write_text(f"User-agent: *\nAllow: /\nDisallow: /id-titular.png\nSitemap: {URL_WEB}/sitemap.xml\n", encoding="utf-8")
     (SALIDA / ".nojekyll").write_text("", encoding="utf-8")
 
     # Modo mantenimiento: en GitHub, variable MANTENIMIENTO = si
