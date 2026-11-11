@@ -637,6 +637,26 @@ def head_extra(ruta, titulo, desc, raiz):
             '<script>if("serviceWorker" in navigator)addEventListener("load",()=>navigator.serviceWorker.register("/sw.js").catch(()=>{}))</script>')
 
 
+GA_ID = os.environ.get("GA_ID", "G-E5M5FXVFMY")
+GA_TAG = (f'<script async src="https://www.googletagmanager.com/gtag/js?id={GA_ID}"></script>\n'
+          '<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}'
+          'gtag("consent","default",{ad_storage:"denied",ad_user_data:"denied",ad_personalization:"denied",analytics_storage:"denied",wait_for_update:500});'
+          'gtag("js",new Date());'
+          f'gtag("config","{GA_ID}",{{modo:matchMedia("(display-mode: standalone)").matches?"app":"web"}});'
+          'addEventListener("appinstalled",()=>gtag("event","app_instalada"));</script>\n')
+ADS_MARCA = '<script async src="https://pagead2.googlesyndication.com'
+
+
+def poner_analytics():
+    n = 0
+    for f in SALIDA.rglob("*.html"):
+        t = f.read_text(encoding="utf-8")
+        if ADS_MARCA in t and "googletagmanager.com/gtag" not in t:
+            f.write_text(t.replace(ADS_MARCA, GA_TAG + ADS_MARCA, 1), encoding="utf-8")
+            n += 1
+    print(f"Google Analytics en {n} páginas")
+
+
 def main():
     datos, nuevos = gasolineras()
     ev = puntos_carga()
@@ -690,6 +710,9 @@ def main():
         + "</urlset>\n", encoding="utf-8")
     (SALIDA / "robots.txt").write_text(f"User-agent: *\nAllow: /\nDisallow: /id-titular.png\nSitemap: {URL_WEB}/sitemap.xml\n", encoding="utf-8")
     (SALIDA / ".nojekyll").write_text("", encoding="utf-8")
+
+    if GA_ID:
+        poner_analytics()
 
     # Modo mantenimiento: en GitHub, variable MANTENIMIENTO = si
     if os.environ.get("MANTENIMIENTO", "").strip().lower() in ("si", "sí", "1", "true", "on"):
