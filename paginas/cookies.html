@@ -7,19 +7,22 @@
 <meta name="robots" content="noindex">
 <style>
 :root{--bg:#f3f5f7;--fg:#17212b;--muted:#5b6876;--accent:#0b5cad;--line:#d9dfe5}
-@media (prefers-color-scheme:dark){:root{--bg:#0e141a;--fg:#e6ebf0;--muted:#97a3b0;--accent:#5aa2ec;--line:#26323d;color-scheme:dark}}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#0e141a;--fg:#e6ebf0;--muted:#97a3b0;--accent:#5aa2ec;--line:#26323d;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0e141a;--fg:#e6ebf0;--muted:#97a3b0;--accent:#5aa2ec;--line:#26323d;color-scheme:dark}
 body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif}
 main{max-width:760px;margin:0 auto;padding:24px max(16px,env(safe-area-inset-left))}
 a{color:var(--accent)} h1{line-height:1.15} h2{margin-top:2em;font-size:1.2em}
 .top{border-bottom:1px solid var(--line);padding:14px 16px} .top a{color:inherit;text-decoration:none;font-weight:700}
 .pend{background:#fff4dc;color:#8a5a00;padding:0 4px;border-radius:4px}
 footer{color:var(--muted);font-size:14px;border-top:1px solid var(--line);padding:20px 16px;text-align:center}
+.tema{background:transparent;border:1px solid var(--line);color:inherit;border-radius:999px;padding:4px 12px;font:600 14px var(--f-body,system-ui);cursor:pointer;white-space:nowrap}
+.tema:hover{border-color:var(--accent)}
 </style>
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5106525369154021" crossorigin="anonymous"></script>
 <link rel="icon" href="logo-192.png" type="image/png">
 </head>
 <body>
-<div class="top"><a href="./">⛽ Repostar Barato CyL</a> <a href="./" style="float:right;font-weight:600;color:var(--accent,#0b5cad)">← Inicio</a></div>
+<div class="top"><a href="./">⛽ Repostar Barato CyL</a> <span style="float:right;display:flex;gap:12px;align-items:center"><button type="button" class="tema" aria-label="Cambiar tema">🌙 Modo oscuro</button><a href="./" style="font-weight:600;color:var(--accent,#0b5cad)">← Inicio</a></span></div>
 <main>
 <h1>Política de cookies</h1>
 

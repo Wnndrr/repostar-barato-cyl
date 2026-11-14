@@ -10,7 +10,8 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700&family=Barlow:wght@400;500&display=swap">
 <style>
 :root{--bg:#f3f5f7;--surface:#fff;--fg:#17212b;--muted:#5b6876;--line:#d9dfe5;--accent:#0b5cad}
-@media (prefers-color-scheme: dark){:root{--bg:#0e141a;--surface:#151d25;--fg:#e6ebf0;--muted:#97a3b0;--line:#26323d;--accent:#5aa2ec;color-scheme:dark}}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#0e141a;--surface:#151d25;--fg:#e6ebf0;--muted:#97a3b0;--line:#26323d;--accent:#5aa2ec;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0e141a;--surface:#151d25;--fg:#e6ebf0;--muted:#97a3b0;--line:#26323d;--accent:#5aa2ec;color-scheme:dark}
 *{box-sizing:border-box}
 body{margin:0;min-height:100vh;display:grid;place-items:center;background:var(--bg);color:var(--fg);
   font:18px/1.6 "Barlow",system-ui,-apple-system,"Segoe UI",sans-serif;

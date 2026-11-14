@@ -647,6 +647,21 @@ GA_TAG = (f'<script async src="https://www.googletagmanager.com/gtag/js?id={GA_I
 ADS_MARCA = '<script async src="https://pagead2.googlesyndication.com'
 
 
+TEMA_HEAD = '<script>try{var t=localStorage.getItem("tema");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>\n'
+
+
+def poner_tema():
+    n = 0
+    for f in SALIDA.rglob("*.html"):
+        t = f.read_text(encoding="utf-8")
+        if 'class="tema"' in t and "tema.js" not in t:
+            t = t.replace('<meta charset="utf-8">', '<meta charset="utf-8">\n' + TEMA_HEAD, 1)
+            t = t.replace("</body>", '<script src="/tema.js" defer></script>\n</body>', 1)
+            f.write_text(t, encoding="utf-8")
+            n += 1
+    print(f"Selector de tema en {n} páginas")
+
+
 def poner_analytics():
     n = 0
     for f in SALIDA.rglob("*.html"):
@@ -711,6 +726,7 @@ def main():
     (SALIDA / "robots.txt").write_text(f"User-agent: *\nAllow: /\nDisallow: /id-titular.png\nSitemap: {URL_WEB}/sitemap.xml\n", encoding="utf-8")
     (SALIDA / ".nojekyll").write_text("", encoding="utf-8")
 
+    poner_tema()
     if GA_ID:
         poner_analytics()
 

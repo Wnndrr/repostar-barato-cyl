@@ -214,6 +214,8 @@ html{scroll-padding-top:calc(var(--hdr,72px) + 8px)}
   nav.menu{-webkit-mask-image:linear-gradient(to right,#000 85%,transparent);mask-image:linear-gradient(to right,#000 85%,transparent);padding-right:24px}
   nav.menu>*{white-space:nowrap;flex:none}
 }
+.tema{background:transparent;border:1px solid var(--line);color:inherit;border-radius:999px;padding:4px 12px;font:600 14px var(--f-body,system-ui);cursor:pointer;white-space:nowrap}
+.tema:hover{border-color:var(--accent)}
 </style>
 
 </head>
@@ -227,6 +229,7 @@ html{scroll-padding-top:calc(var(--hdr,72px) + 8px)}
     <a href="mapa.html">Mapa satélite</a>
     <button class="evlink instalar" id="instalar" type="button" hidden>📲 Instalar app</button>
     <a class="evlink" href="#electrico">⚡ Coche eléctrico</a>
+      <button type="button" class="tema" aria-label="Cambiar tema">🌙 Modo oscuro</button>
   </nav>
 </div></header>
 
