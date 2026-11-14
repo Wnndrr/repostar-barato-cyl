@@ -10,8 +10,8 @@ const st=document.createElement("style");st.textContent=`
 .opcmenu button:hover,.opcmenu button:focus-visible{background:var(--accent-soft,#e3eefa)}
 .opcmenu button[aria-checked="true"]::after{content:"✓";margin-left:auto;color:var(--accent,#0b5cad);font-weight:700}
 .opcmenu hr{border:0;border-top:1px solid var(--line,#d9dfe5);margin:6px 4px}
-.opc{background:transparent;border:0;padding:0;color:inherit;font:inherit;cursor:pointer;white-space:nowrap}
-.opc:hover,.opc[aria-expanded="true"]{color:var(--accent)}`;document.head.appendChild(st);
+.recargar,.opc{background:transparent;border:0;padding:0;color:inherit;font:inherit;cursor:pointer;white-space:nowrap}
+.recargar:hover,.opc:hover,.opc[aria-expanded="true"]{color:var(--accent)}`;document.head.appendChild(st);
 const menu=document.createElement("div");menu.className="opcmenu";menu.hidden=true;menu.setAttribute("role","menu");
 menu.innerHTML=`<h4>Tema</h4><button role="menuitemradio" data-t="light">☀️ Tema claro</button><button role="menuitemradio" data-t="dark">🌙 Tema oscuro</button><button role="menuitemradio" data-t="auto">🌗 Automático (como el dispositivo)</button>`;
 document.addEventListener("DOMContentLoaded",()=>document.body.appendChild(menu));if(document.body)document.body.appendChild(menu);
@@ -19,7 +19,8 @@ function pintar(){const e=elegido();menu.querySelectorAll("[data-t]").forEach(b=
 let btnAbierto=null,y0=0;
 function abrir(b){const r=b.getBoundingClientRect();menu.hidden=false;const w=menu.offsetWidth;menu.style.top=(r.bottom+8)+"px";menu.style.left=Math.max(8,Math.min(innerWidth-w-8,r.right-w))+"px";b.setAttribute("aria-expanded","true");btnAbierto=b;y0=scrollY;pintar();menu.querySelector("button").focus({preventScroll:true})}
 function cerrar(){if(menu.hidden)return;menu.hidden=true;if(btnAbierto){btnAbierto.setAttribute("aria-expanded","false");btnAbierto=null}}
-document.addEventListener("click",e=>{const b=e.target.closest(".opc");if(b){menu.hidden?abrir(b):cerrar();return}
+document.addEventListener("click",e=>{if(e.target.closest(".recargar")){const r=e.target.closest(".recargar");r.textContent="Actualizando…";const u=new URL(location.href);u.searchParams.set("act",Date.now());location.replace(u.toString());return}
+  const b=e.target.closest(".opc");if(b){menu.hidden?abrir(b):cerrar();return}
   const t=e.target.closest(".opcmenu [data-t]");if(t){aplicar(t.dataset.t);cerrar();return}
   if(!e.target.closest(".opcmenu"))cerrar()});
 document.addEventListener("keydown",e=>{if(e.key==="Escape")cerrar()});
