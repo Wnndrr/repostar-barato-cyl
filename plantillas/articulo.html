@@ -78,6 +78,16 @@ footer a{color:inherit}
   .datos .chip{display:block;width:max-content;margin:4px 0 0}
 }
 a:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+header.top{position:sticky;top:0;z-index:100;box-shadow:0 1px 0 var(--line)}
+html{scroll-padding-top:calc(var(--hdr,72px) + 8px)}
+@media (max-width:700px){
+  header.top .wrap{padding-block:8px;gap:6px}
+  .brand{font-size:22px}.brand img{width:30px;height:30px}
+  nav.menu{flex-wrap:nowrap;overflow-x:auto;width:100%;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding-bottom:2px}
+  nav.menu::-webkit-scrollbar{display:none}
+  nav.menu{-webkit-mask-image:linear-gradient(to right,#000 85%,transparent);mask-image:linear-gradient(to right,#000 85%,transparent);padding-right:24px}
+  nav.menu>*{white-space:nowrap;flex:none}
+}
 </style>
 </head>
 <body>
@@ -111,5 +121,6 @@ __RELACIONADOS__
   <span>Precios: Ministerio para la Transición Ecológica y el Reto Demográfico (datos abiertos). Web no vinculada al Ministerio.</span>
   <span><a href="__RAIZ__aviso-legal.html">Aviso legal</a> · <a href="__RAIZ__privacidad.html">Privacidad</a> · <a href="__RAIZ__cookies.html">Cookies</a> · <a href="__RAIZ__contacto.html">Contacto</a></span>
 </div></footer>
+<script>(()=>{const h=document.querySelector("header.top");if(!h)return;const f=()=>document.documentElement.style.setProperty("--hdr",h.offsetHeight+"px");f();addEventListener("resize",f);addEventListener("load",f)})()</script>
 </body>
 </html>

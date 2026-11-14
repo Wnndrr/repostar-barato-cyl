@@ -190,6 +190,16 @@ footer .wrap{padding-block:24px;display:flex;justify-content:space-between;gap:1
   .dot{margin-right:5px}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+header.top{position:sticky;top:0;z-index:100;box-shadow:0 1px 0 var(--line)}
+html{scroll-padding-top:calc(var(--hdr,72px) + 8px)}
+@media (max-width:700px){
+  header.top .wrap{padding-block:8px;gap:6px}
+  .brand{font-size:22px}.brand img{width:30px;height:30px}
+  nav.menu{flex-wrap:nowrap;overflow-x:auto;width:100%;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding-bottom:2px}
+  nav.menu::-webkit-scrollbar{display:none}
+  nav.menu{-webkit-mask-image:linear-gradient(to right,#000 85%,transparent);mask-image:linear-gradient(to right,#000 85%,transparent);padding-right:24px}
+  nav.menu>*{white-space:nowrap;flex:none}
+}
 </style>
 
 </head>
@@ -661,5 +671,6 @@ listaGas();calc();
   $("iosCerrar").onclick=()=>{$("iosAyuda").hidden=true};
 })();
 </script>
+<script>(()=>{const h=document.querySelector("header.top");if(!h)return;const f=()=>document.documentElement.style.setProperty("--hdr",h.offsetHeight+"px");f();addEventListener("resize",f);addEventListener("load",f)})()</script>
 </body>
 </html>
