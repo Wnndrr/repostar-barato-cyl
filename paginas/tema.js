@@ -10,8 +10,8 @@ const st=document.createElement("style");st.textContent=`
 .opcmenu button:hover,.opcmenu button:focus-visible{background:var(--accent-soft,#e3eefa)}
 .opcmenu button[aria-checked="true"]::after{content:"✓";margin-left:auto;color:var(--accent,#0b5cad);font-weight:700}
 .opcmenu hr{border:0;border-top:1px solid var(--line,#d9dfe5);margin:6px 4px}
-.opc{background:transparent;border:1px solid var(--line);color:inherit;border-radius:999px;padding:4px 12px;font:600 14px var(--f-body,system-ui);cursor:pointer;white-space:nowrap}
-.opc:hover,.opc[aria-expanded="true"]{border-color:var(--accent);color:var(--accent)}`;document.head.appendChild(st);
+.opc{background:transparent;border:0;padding:0;color:inherit;font:inherit;cursor:pointer;white-space:nowrap}
+.opc:hover,.opc[aria-expanded="true"]{color:var(--accent)}`;document.head.appendChild(st);
 const menu=document.createElement("div");menu.className="opcmenu";menu.hidden=true;menu.setAttribute("role","menu");
 menu.innerHTML=`<h4>Tema</h4><button role="menuitemradio" data-t="light">☀️ Tema claro</button><button role="menuitemradio" data-t="dark">🌙 Tema oscuro</button><button role="menuitemradio" data-t="auto">🌗 Automático (como el móvil)</button>`;
 document.addEventListener("DOMContentLoaded",()=>document.body.appendChild(menu));if(document.body)document.body.appendChild(menu);
