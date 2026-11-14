@@ -310,8 +310,8 @@ __PUEBLOS__
     <h2 id="rtitle">Todas las gasolineras</h2>
     <p class="sub" id="rsub"></p>
     <div class="controls">
-      <label class="field grow" for="q"><span>Buscar por pueblo o marca</span>
-        <input id="q" type="search" placeholder="Ej.: Aranda de Duero, Benavente, Repsol…" autocomplete="off">
+      <label class="field grow" for="q"><span>Buscar por pueblo, marca o calle</span>
+        <input id="q" type="search" placeholder="Ej.: La Robla, Aranda, Repsol, N-630…" autocomplete="off">
       </label>
       <label class="field" for="fsel"><span>Combustible</span>
         <select id="fsel">
@@ -417,7 +417,8 @@ const U=k=>k===12?" €/kg":" €";
 let fuel=5, prov=-1, shown=25, evMode="all";
 const $=id=>document.getElementById(id);
 const fmt=v=>(v/1000).toFixed(3).replace(".",",");
-const norm=s=>s.normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase();
+const norm=s=>s.normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase().replace(/[^a-z0-9ñ]+/g," ").trim();
+const coincide=(q,t)=>{t=" "+norm(t)+" ";return q.split(" ").every(w=>t.includes(w))};
 const esc=s=>s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const ruta=s=>`https://www.google.com/maps/dir/?api=1&destination=${s[8]},${s[9]}`;
 const hor=h=>h.replace(/L-D: 24H/,"24 horas").replace(/L-D: /,"Todos los días ");
@@ -537,7 +538,7 @@ $("psel").onchange=e=>{prov=+e.target.value;shown=25;render();gasMap.refit()};
 
 function table(){
   const q=norm($("q").value.trim());
-  let xs=S.map((s,i)=>i).filter(i=>{const s=S[i];return(prov<0||s[0]===prov)&&(!q||norm(s[1]+" "+s[2]).includes(q))&&(fuel<10||s[fuel])});
+  let xs=S.map((s,i)=>i).filter(i=>{const s=S[i];return(prov<0||s[0]===prov)&&(!q||coincide(q,nomP(s[1])+" "+s[1]+" "+s[2]+" "+s[3]))&&(fuel<10||s[fuel])});
   xs.sort((a,b)=>(S[a][fuel]||9e9)-(S[b][fuel]||9e9));
   const best=xs.length&&S[xs[0]][fuel]?S[xs[0]][fuel]:0;
   $("rtitle").textContent=prov>=0?`Gasolineras de ${P[prov]}`:"Todas las gasolineras de Castilla y León";
@@ -570,7 +571,7 @@ $("ezin").onclick=()=>evMap.zoom(.7);$("ezout").onclick=()=>evMap.zoom(1.4);$("e
 document.querySelectorAll("[data-ev]").forEach(b=>b.onclick=()=>{evMode=b.dataset.ev;document.querySelectorAll("[data-ev]").forEach(x=>x.setAttribute("aria-pressed",x===b));evMap.select(-1);evTable();evMap.draw()});
 function evTable(){
   const q=norm($("eq").value.trim());
-  const xs=EV.filter(e=>{const f=isFast(e);return!(evMode==="fast"&&!f||evMode==="slow"&&f)&&(!q||norm(e[2]+" "+e[3]+" "+e[4]).includes(q))});
+  const xs=EV.filter(e=>{const f=isFast(e);return!(evMode==="fast"&&!f||evMode==="slow"&&f)&&(!q||coincide(q,e[2]+" "+e[3]+" "+e[4]))});
   xs.sort((a,b)=>isFast(b)-isFast(a)||(b[6]||0)-(a[6]||0)||a[3].localeCompare(b[3],"es"));
   $("evtitle").textContent=`Puntos de carga (${xs.length})`;
   $("etb").innerHTML=xs.length?xs.map(e=>`<tr><td><strong>${esc(e[2])}</strong></td><td><a class="dir" href="https://www.google.com/maps/dir/?api=1&destination=${e[0]},${e[1]}" target="_blank" rel="noopener">${esc(e[3])} ↗</a></td><td>${esc(e[4]||"Sin indicar")}</td><td class="price">${e[6]?e[6]+" kW":"—"}</td><td>${tags(e)}</td></tr>`).join(""):`<tr><td colspan="5" class="empty">No hay puntos de carga que coincidan.</td></tr>`;
@@ -591,7 +592,7 @@ $("cZona").innerHTML='<option value="-1">Castilla y León</option>'+P.map((p,k)=
 /* Lista de gasolineras de la zona que venden el combustible elegido, agrupadas por pueblo */
 function listaGas(keep){
   const f=+$("cComb").value,z=+$("cZona").value,q=norm($("cBusca").value.trim());
-  const xs=S.map((s,i)=>i).filter(i=>{const s=S[i];return s[f]&&(q?norm(s[1]+" "+nomP(s[1])+" "+s[2]+" "+s[3]).includes(q):(z<0||s[0]===z))});
+  const xs=S.map((s,i)=>i).filter(i=>{const s=S[i];return s[f]&&(q?coincide(q,s[1]+" "+nomP(s[1])+" "+s[2]+" "+s[3]):(z<0||s[0]===z))});
   xs.sort((a,b)=>nomP(S[a][1]).localeCompare(nomP(S[b][1]),"es")||S[a][f]-S[b][f]);
   const prev=keep??$("cGas").value;let html="",grupo=null;
   xs.forEach(i=>{const s=S[i],g=nomP(s[1])+(z<0||q?` (${P[s[0]]})`:"");
