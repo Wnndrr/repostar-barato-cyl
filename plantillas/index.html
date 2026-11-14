@@ -490,7 +490,7 @@ function makeMap(el,opts){
   map.on("zoomend",draw);
   function bounds(){return opts.bounds&&opts.bounds()||CYL}
   function refit(){map.fitBounds(bounds(),{padding:[14,14]});draw()}
-  function size(){if(!el.offsetWidth)return;map.invalidateSize();if(!ready){ready=true;refit()}else draw()}
+  function size(){if(!el.offsetWidth)return;map.invalidateSize();if(!ready){ready=true;const capa=esSat?sat:calles;map.removeLayer(capa);capa.addTo(map);refit()}else draw()}
   function setSat(v){esSat=v;if(v){map.removeLayer(calles);sat.addTo(map)}else{map.removeLayer(sat);calles.addTo(map)}
     el.classList.toggle("sat",v);if(opts.satBtn){opts.satBtn.setAttribute("aria-pressed",v);opts.satBtn.textContent=v?"🗺️":"🛰️";opts.satBtn.title=v?"Ver callejero":"Ver satélite"}draw()}
   if(opts.satBtn)opts.satBtn.onclick=()=>setSat(!esSat);
