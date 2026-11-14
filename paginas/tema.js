@@ -13,7 +13,7 @@ const st=document.createElement("style");st.textContent=`
 .opc{background:transparent;border:1px solid var(--line);color:inherit;border-radius:999px;padding:4px 12px;font:600 14px var(--f-body,system-ui);cursor:pointer;white-space:nowrap}
 .opc:hover,.opc[aria-expanded="true"]{border-color:var(--accent);color:var(--accent)}`;document.head.appendChild(st);
 const menu=document.createElement("div");menu.className="opcmenu";menu.hidden=true;menu.setAttribute("role","menu");
-menu.innerHTML=`<h4>Tema</h4><button role="menuitemradio" data-t="light">☀️ Tema claro</button><button role="menuitemradio" data-t="dark">🌙 Tema oscuro</button><button role="menuitemradio" data-t="auto">🌗 Automático (como el móvil)</button><hr><h4>Widget</h4><button role="menuitem" data-w="1">⭐ Widget: mi gasolinera</button>`;
+menu.innerHTML=`<h4>Tema</h4><button role="menuitemradio" data-t="light">☀️ Tema claro</button><button role="menuitemradio" data-t="dark">🌙 Tema oscuro</button><button role="menuitemradio" data-t="auto">🌗 Automático (como el móvil)</button>`;
 document.addEventListener("DOMContentLoaded",()=>document.body.appendChild(menu));if(document.body)document.body.appendChild(menu);
 function pintar(){const e=elegido();menu.querySelectorAll("[data-t]").forEach(b=>b.setAttribute("aria-checked",b.dataset.t===e))}
 let btnAbierto=null,y0=0;
@@ -21,7 +21,6 @@ function abrir(b){const r=b.getBoundingClientRect();menu.hidden=false;const w=me
 function cerrar(){if(menu.hidden)return;menu.hidden=true;if(btnAbierto){btnAbierto.setAttribute("aria-expanded","false");btnAbierto=null}}
 document.addEventListener("click",e=>{const b=e.target.closest(".opc");if(b){menu.hidden?abrir(b):cerrar();return}
   const t=e.target.closest(".opcmenu [data-t]");if(t){aplicar(t.dataset.t);cerrar();return}
-  if(e.target.closest(".opcmenu [data-w]")){cerrar();if(window.abrirWidget)window.abrirWidget();else location.href="/?widget=1#migasolinera";return}
   if(!e.target.closest(".opcmenu"))cerrar()});
 document.addEventListener("keydown",e=>{if(e.key==="Escape")cerrar()});
 addEventListener("scroll",()=>{if(Math.abs(scrollY-y0)>40)cerrar()},{passive:true});addEventListener("resize",cerrar);

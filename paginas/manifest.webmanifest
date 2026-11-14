@@ -24,17 +24,6 @@
   ],
   "shortcuts": [
     {
-      "name": "Mi gasolinera",
-      "short_name": "Mi gasolinera",
-      "url": "/?app=1#migasolinera",
-      "icons": [
-        {
-          "src": "/logo-192.png",
-          "sizes": "192x192"
-        }
-      ]
-    },
-    {
       "name": "Gasolineras cerca de mí",
       "short_name": "Cerca de mí",
       "url": "/?app=1#mapa",

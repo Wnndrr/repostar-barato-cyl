@@ -95,24 +95,6 @@ button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible,ca
 .selbl .ir{display:inline-block;margin-top:6px;background:#0b5cad;color:#fff;border-radius:999px;padding:5px 12px;text-decoration:none;font-weight:600}
 .selbl .ir:hover{background:#1470cc}
 .leaflet-control-attribution{font-size:10px}
-.wcard{background:var(--surface);border:2px solid var(--accent);border-radius:16px;padding:16px 18px;margin:16px 0;display:grid;gap:10px}
-.wcard .wt{display:flex;justify-content:space-between;gap:8px 16px;flex-wrap:wrap;align-items:baseline}
-.wcard .wn{font-family:var(--f-display);font-size:26px;font-weight:700;line-height:1.1}
-.wcard .wl{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:700}
-.wcard .wp{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px}
-.wcard .wp div{background:var(--bg);border-radius:10px;padding:8px 12px}
-.wcard .wp b{display:block;font-family:var(--f-num);font-size:24px;font-variant-numeric:tabular-nums}
-.wcard .wp span{font-size:13px;color:var(--muted)}
-.wcard .wa{display:flex;gap:8px;flex-wrap:wrap}
-#wdlg{border:0;border-radius:16px;padding:0;width:min(560px,calc(100vw - 24px));max-height:85vh;background:var(--surface);color:var(--fg);box-shadow:0 20px 60px rgba(0,0,0,.35)}
-#wdlg::backdrop{background:rgba(0,0,0,.5)}
-.wdlg{padding:18px;display:flex;flex-direction:column;max-height:85vh}
-.wdlg h3{margin:0 0 6px;font-family:var(--f-display);font-size:24px}
-#wq{width:100%;font:16px var(--f-body);padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--fg)}
-.wlist{overflow:auto;margin-top:10px;display:grid;gap:6px;min-height:80px}
-.wlist button{display:block;width:100%;text-align:left;border:1px solid var(--line);background:var(--bg);color:var(--fg);border-radius:10px;padding:10px 12px;font:15px var(--f-body);cursor:pointer}
-.wlist button:hover{border-color:var(--accent)}
-.wlist small{display:block;color:var(--muted);font-size:13px}
 .cerca{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;margin:0 0 12px}
 .btncerca{border:0;background:var(--accent);color:#fff;font:600 16px var(--f-body);padding:10px 18px;border-radius:999px;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.15)}
 .btncerca:hover{filter:brightness(1.1)}
@@ -278,17 +260,6 @@ html{scroll-padding-top:calc(var(--hdr,72px) + 8px)}
 </div></section>
 
 <main><div class="wrap">
-  <section id="migasolinera" class="wcard" hidden aria-live="polite"></section>
-  <dialog id="wdlg" aria-labelledby="wdlgT">
-    <div class="wdlg">
-      <h3 id="wdlgT">¿De qué gasolinera quieres el widget?</h3>
-      <p class="muted" style="margin:0 0 10px;font-size:15px">Saldrá arriba del todo en la web y en la app, con sus precios siempre actualizados.</p>
-      <button type="button" class="btn" id="wcerca" style="margin-bottom:10px">📍 Ver las más cercanas a mí</button>
-      <input id="wq" type="search" placeholder="Busca por pueblo, marca o calle…" autocomplete="off">
-      <div id="wlist" class="wlist"></div>
-      <div style="display:flex;justify-content:flex-end;margin-top:10px"><button type="button" class="btn" id="wcancel">Cancelar</button></div>
-    </div>
-  </dialog>
   <div>
     <div class="controls" style="margin-bottom:0">
       <div class="field"><span>Combustible</span>
@@ -639,33 +610,6 @@ function evTable(){
 }
 $("eq").oninput=evTable;
 
-/* Widget "mi gasolinera" */
-const WK="miGasolinera";
-function miIdx(){let g;try{g=JSON.parse(localStorage.getItem(WK)||"null")}catch(_){g=null}if(!g)return -1;
-  let i=S.findIndex(s=>s[8]===g.la&&s[9]===g.lo);if(i<0){let bd=0.3;S.forEach((s,k)=>{const d=distKm(g.la,g.lo,s[8],s[9]);if(d<bd&&s[2]===g.n){bd=d;i=k}})}return i}
-function pintarWidget(){const el=$("migasolinera"),i=miIdx();const hero=document.querySelector(".hero");if(hero&&!el.dataset.movido){const w=document.createElement("div");w.className="wrap";w.appendChild(el);hero.before(w);el.dataset.movido=1}if(i<0){el.hidden=true;return}const s=S[i];
-  const pr=[[5,"Gasolina 95"],[6,"Diésel"],[7,"Gasolina 98"],[10,"GLP"],[11,"AdBlue"],[12,"Gas natural"]].filter(([k])=>s[k]).map(([k,l])=>`<div><span>${l}</span><b>${fmt(s[k])}${U(k)}</b></div>`).join("");
-  el.innerHTML=`<div class="wt"><div><div class="wl">⭐ Mi gasolinera</div><div class="wn">${esc(s[2])}</div><div class="muted" style="font-size:15px">${esc(s[3])} · ${esc(nomP(s[1]))} (${P[s[0]]})</div></div><span class="muted" style="font-size:13px">Precios actualizados el __FECHA__</span></div>
-    <div class="wp">${pr||'<span class="muted">Esta gasolinera no ha comunicado precios hoy.</span>'}</div>
-    <div class="wa"><a class="btn" href="${ruta(s)}" target="_blank" rel="noopener" style="text-decoration:none">📍 Cómo llegar ↗</a><button class="btn" type="button" id="wcambiar">Cambiar</button><button class="btn" type="button" id="wquitar">Quitar</button></div>`;
-  el.hidden=false;$("wcambiar").onclick=abrirWidget;$("wquitar").onclick=()=>{try{localStorage.removeItem(WK)}catch(_){}pintarWidget()}}
-let wBase=null;
-function wLista(){const q=norm($("wq").value.trim());let xs=S.map((s,i)=>i);
-  if(wBase)xs.sort((a,b)=>distKm(wBase[0],wBase[1],S[a][8],S[a][9])-distKm(wBase[0],wBase[1],S[b][8],S[b][9]));
-  if(q)xs=xs.filter(i=>coincide(q,nomP(S[i][1])+" "+S[i][1]+" "+S[i][2]+" "+S[i][3]));
-  if(!q&&!wBase){$("wlist").innerHTML='<p class="muted" style="margin:6px 2px">Escribe el nombre del pueblo o de la gasolinera, o pulsa "Ver las más cercanas a mí".</p>';return}
-  xs=xs.slice(0,40);
-  $("wlist").innerHTML=xs.length?xs.map(i=>{const s=S[i];return`<button type="button" data-i="${i}"><strong>${esc(s[2])}</strong>${wBase?` · <span style="color:var(--accent)">${fkm(distKm(wBase[0],wBase[1],s[8],s[9]))}</span>`:""}<small>${esc(s[3])} · ${esc(nomP(s[1]))} (${P[s[0]]})${s[5]?" · 95: "+fmt(s[5])+" €":""}${s[6]?" · Diésel: "+fmt(s[6])+" €":""}</small></button>`}).join(""):'<p class="muted" style="margin:6px 2px">No hay gasolineras que coincidan.</p>';
-  $("wlist").querySelectorAll("[data-i]").forEach(b=>b.onclick=()=>{const s=S[+b.dataset.i];try{localStorage.setItem(WK,JSON.stringify({la:s[8],lo:s[9],n:s[2]}))}catch(_){}
-    $("wdlg").close();pintarWidget();$("migasolinera").scrollIntoView({behavior:"smooth",block:"center"})})}
-function abrirWidget(){$("wq").value="";wBase=null;wLista();const d=$("wdlg");d.showModal?d.showModal():d.setAttribute("open","");setTimeout(()=>$("wq").focus(),50)}
-window.abrirWidget=abrirWidget;
-$("wq").oninput=wLista;$("wcancel").onclick=()=>$("wdlg").close();
-$("wdlg").addEventListener("click",e=>{if(e.target===$("wdlg"))$("wdlg").close()});
-$("wcerca").onclick=()=>{const b=$("wcerca");if(!navigator.geolocation){b.textContent="Tu navegador no permite la ubicación";return}b.textContent="Buscando tu ubicación…";
-  navigator.geolocation.getCurrentPosition(p=>{wBase=[p.coords.latitude,p.coords.longitude];b.textContent="📍 Ordenadas de más cerca a más lejos";wLista()},
-    e=>{b.textContent=e.code===1?"No has dado permiso de ubicación":"No hemos podido saber dónde estás"},{timeout:15000,maximumAge:300000})};
-
 /* Cerca de mí: la ubicación se pide solo al pulsar el botón */
 function pedirUbicacion(btn,msg,ok){
   if(!navigator.geolocation){msg.textContent="Tu navegador no permite usar la ubicación.";msg.className="cercamsg err";return}
@@ -693,9 +637,7 @@ addEventListener("hashchange",route);
 document.querySelectorAll('a[href="#inicio"]').forEach(x=>x.addEventListener("click",()=>{if(location.hash==="#inicio")scrollTo({top:0,behavior:"smooth"})}));
 const mq=matchMedia("(prefers-color-scheme: dark)");mq.addEventListener&&mq.addEventListener("change",()=>{gasMap.draw();evMap.draw()});
 new MutationObserver(()=>{gasMap.draw();evMap.draw()}).observe(document.documentElement,{attributes:true,attributeFilter:["data-theme"]});
-hero();render();evTable();route();pintarWidget();
-if(/[?&]widget=1/.test(location.search)||(location.hash==="#migasolinera"&&miIdx()<0))abrirWidget();
-else if(location.hash==="#migasolinera")$("migasolinera").scrollIntoView({block:"center"});
+hero();render();evTable();route();
 
 /* Calculadora de litros */
 const nf=(v,d=1)=>v.toLocaleString("es-ES",{minimumFractionDigits:d,maximumFractionDigits:d});
