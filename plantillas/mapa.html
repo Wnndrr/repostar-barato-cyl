@@ -8,6 +8,7 @@
 __HEADEXTRA__
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5106525369154021" crossorigin="anonymous"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700&family=Barlow:wght@400;600&family=JetBrains+Mono:wght@700&display=swap">
 <style>
 [hidden]{display:none!important}
@@ -17,6 +18,7 @@ header{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;justify-cont
 .izq{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 .volver{color:#fff;background:#0b5cad;border-radius:999px;padding:6px 14px;font:600 15px Barlow,sans-serif;text-decoration:none;white-space:nowrap}
 .volver:hover{background:#1470cc}
+body.calles .plabel{color:#1d3b5c!important;text-shadow:0 0 3px #fff,0 0 3px #fff!important}
 h1{font-family:"Barlow Condensed",sans-serif;font-size:24px;margin:0}
 .seg{display:inline-flex;flex-wrap:wrap;background:#151d25;border:1px solid #26323d;border-radius:999px;padding:3px}
 .seg button{border:0;background:transparent;color:#97a3b0;font:600 14px Barlow,sans-serif;padding:6px 12px;border-radius:999px;cursor:pointer}
@@ -36,7 +38,7 @@ h1{font-family:"Barlow Condensed",sans-serif;font-size:24px;margin:0}
 </head>
 <body>
 <header>
-  <div class="izq"><a class="volver" href="./">← Inicio</a><h1><a href="./" style="color:inherit;text-decoration:none">Repostar Barato CyL</a> · Mapa satélite</h1></div>
+  <div class="izq"><a class="volver" href="./">← Inicio</a><button class="volver" id="capa" type="button" style="border:0;cursor:pointer;background:#26323d">🗺️ Ver callejero</button><h1><a href="./" style="color:inherit;text-decoration:none">Repostar Barato CyL</a> · Mapa satélite</h1></div>
   <div class="seg" role="group" aria-label="Combustible">
     <button data-f="5" aria-pressed="true">Gasolina 95</button><button data-f="6" aria-pressed="false">Diésel</button><button data-f="7" aria-pressed="false">Gasolina 98</button><button data-f="10" aria-pressed="false">GLP</button><button data-f="11" aria-pressed="false">AdBlue</button><button data-f="12" aria-pressed="false">Gas natural</button>
   </div>
@@ -46,6 +48,8 @@ h1{font-family:"Barlow Condensed",sans-serif;font-size:24px;margin:0}
   <div class="legend"><span>Barata</span><span class="ramp"></span><span>Cara</span></div>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<script src="https://unpkg.com/@maplibre/maplibre-gl-leaflet@0.0.22/leaflet-maplibre-gl.js"></script>
 <script>
 const S=__DATA__;
 const P=["Ávila","Burgos","León","Palencia","Salamanca","Segovia","Soria","Valladolid","Zamora"];
@@ -54,13 +58,23 @@ const esc=s=>s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&qu
 const STOPS=[[26,152,80],[166,217,106],[254,224,139],[253,174,97],[215,48,39]];
 function ramp(t){t=Math.max(0,Math.min(1,t))*(STOPS.length-1);const i=Math.min(STOPS.length-2,Math.floor(t)),f=t-i,a=STOPS[i],b=STOPS[i+1];return`rgb(${a.map((v,k)=>Math.round(v+(b[k]-v)*f)).join(",")})`}
 const map=L.map("map",{zoomControl:true}).fitBounds([[40.08,-7.08],[43.25,-1.75]]);
-L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",{maxZoom:19,attribution:"Imágenes © Esri, Maxar, Earthstar Geographics · Precios: MITECO"}).addTo(map);
-L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",{maxZoom:19,opacity:.85}).addTo(map);
+const sat=L.layerGroup([
+  L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",{maxZoom:19,maxNativeZoom:18,attribution:"Imágenes © Esri, Maxar, Earthstar Geographics · Precios: MITECO"}),
+  L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}",{maxZoom:19,maxNativeZoom:18,opacity:.8}),
+  L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",{maxZoom:19,maxNativeZoom:18})]).addTo(map);
+let calles;
+try{if(!window.maplibregl||!L.maplibreGL||!maplibregl.supported||!maplibregl.supported())throw 0;
+  calles=L.maplibreGL({style:"https://tiles.openfreemap.org/styles/liberty",attribution:'<a href="https://openfreemap.org" target="_blank" rel="noopener">OpenFreeMap</a> © <a href="https://www.openmaptiles.org/" target="_blank" rel="noopener">OpenMapTiles</a> © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> · Precios: MITECO'})}
+catch(e){calles=L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:'© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> · Precios: MITECO'})}
+let esSat=true;const capaBtn=document.getElementById("capa");
+capaBtn.onclick=()=>{esSat=!esSat;if(esSat){map.removeLayer(calles);sat.addTo(map)}else{map.removeLayer(sat);calles.addTo(map)}
+  capaBtn.textContent=esSat?"🗺️ Ver callejero":"🛰️ Ver satélite";provs.eachLayer(l=>l.setStyle({color:esSat?"#ffffff":"#2f5f8f"}));document.body.classList.toggle("calles",!esSat)};
 function gota(color){return L.divIcon({className:"gota",iconSize:[26,36],iconAnchor:[13,35],popupAnchor:[0,-32],
   html:`<svg width="26" height="36" viewBox="0 0 26 36"><path d="M13 35C13 35 2 21 2 13a11 11 0 0 1 22 0c0 8-11 22-11 22z" fill="${color}" stroke="rgba(0,0,0,.55)" stroke-width="1.5"/><circle cx="13" cy="13" r="4.2" fill="#fff"/></svg>`})}
 const PROV=__PROV__;
 const NAMES=["Ávila","Burgos","León","Palencia","Salamanca","Segovia","Soria","Valladolid","Zamora"];
-PROV.forEach((r,k)=>{L.polygon(r,{color:"#ffffff",weight:2.5,opacity:.95,dashArray:"7 5",fillColor:"#ffffff",fillOpacity:.04,interactive:false}).addTo(map);
+const provs=L.layerGroup().addTo(map);
+PROV.forEach((r,k)=>{L.polygon(r,{color:"#ffffff",weight:2.2,opacity:.9,dashArray:"7 5",fill:false,interactive:false}).addTo(provs);
   let A=0,cx=0,cy=0;for(let i=0;i<r.length-1;i++){const[a1,o1]=r[i],[a2,o2]=r[i+1],f=o1*a2-o2*a1;A+=f;cx+=(o1+o2)*f;cy+=(a1+a2)*f}A/=2;
   L.tooltip({permanent:true,direction:"center",className:"plabel",interactive:false}).setLatLng([cy/(6*A),cx/(6*A)]).setContent(NAMES[k].toUpperCase()).addTo(map)});
 let layer=L.layerGroup().addTo(map), fuel=5;

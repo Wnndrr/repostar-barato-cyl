@@ -8,6 +8,8 @@
 <link rel="canonical" href="__URL__/">
 __HEADEXTRA__
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5106525369154021" crossorigin="anonymous"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap">
 <style>
@@ -79,8 +81,17 @@ button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible,ca
 
 /* Mapa */
 .mapbox{position:relative;background:var(--map-bg);border:1px solid var(--line);border-radius:14px;overflow:hidden}
-.mapbox canvas{display:block;width:100%;height:clamp(340px,60vw,560px);touch-action:none;cursor:grab}
-.mapbox canvas.drag{cursor:grabbing}
+.mapbox .lmap{display:block;width:100%;height:clamp(360px,62vw,580px);background:#e8ecef}
+.zoom{z-index:1000}
+.zoom .capa{font-size:17px}
+.zoom .capa[aria-pressed="true"]{background:var(--accent);border-color:var(--accent)}
+.leaflet-container{font-family:var(--f-body)}
+.leaflet-tooltip.plabel{background:transparent;border:0;box-shadow:none;font:700 13px var(--f-body);letter-spacing:.08em;color:#1d3b5c;text-shadow:0 0 3px #fff,0 0 3px #fff,0 0 3px #fff}
+.sat .leaflet-tooltip.plabel{color:#fff;text-shadow:0 0 4px #000,0 0 4px #000}
+.lmap.zlej .leaflet-tooltip.plabel{display:none}
+.leaflet-tooltip.plabel:before{display:none}
+.leaflet-tooltip.selbl{font:600 14px var(--f-body);padding:5px 10px;border-radius:8px}
+.leaflet-control-attribution{font-size:10px}
 .zoom{position:absolute;right:12px;top:12px;display:grid;gap:6px}
 .zoom button{width:36px;height:36px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--fg);font:700 18px var(--f-body);cursor:pointer}
 .legend{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:14px;color:var(--muted);margin-top:10px}
@@ -252,10 +263,10 @@ html{scroll-padding-top:calc(var(--hdr,72px) + 8px)}
 
   <section id="mapa">
     <h2>Mapa de todas las gasolineras</h2>
-    <p class="sub">Las líneas marcan la frontera de cada provincia. Cada marcador es una gasolinera. Verde: de las más baratas de la comunidad. Rojo: de las más caras. Toca un marcador para ver su nombre y su precio, o arrastra y usa + y − para acercarte.</p>
+    <p class="sub">Las líneas marcan la frontera de cada provincia. Cada marcador es una gasolinera. Verde: de las más baratas de la comunidad. Rojo: de las más caras. Toca un marcador para ver su nombre y su precio. Arrastra el mapa, usa + y − para acercarte y pulsa 🛰️ para verlo en satélite.</p>
     <div class="mapbox">
-      <canvas id="map" tabindex="0" aria-label="Mapa de gasolineras de Castilla y León coloreadas por precio"></canvas>
-      <div class="zoom"><button id="zin" aria-label="Acercar">+</button><button id="zout" aria-label="Alejar">−</button><button id="zre" aria-label="Ver toda la comunidad" style="font-size:13px">⤢</button></div>
+      <div id="map" class="lmap" role="region" aria-label="Mapa de gasolineras de Castilla y León coloreadas por precio"></div>
+      <div class="zoom"><button id="zin" aria-label="Acercar">+</button><button id="zout" aria-label="Alejar">−</button><button id="zre" aria-label="Ver toda la comunidad" style="font-size:13px">⤢</button><button id="zsat" class="capa" aria-pressed="false" title="Ver satélite">🛰️</button></div>
     </div>
     <div class="legend"><span>Más barata</span><span class="num" id="lgMin"></span><span class="ramp"></span><span class="num" id="lgMax"></span><span>Más cara</span><span id="lgNo"></span></div>
     <div class="pick" id="pick"><span class="muted">Toca cualquier punto del mapa para ver la gasolinera.</span></div>
@@ -383,8 +394,8 @@ __CONSEJOS__
       </div>
     </div>
     <div class="mapbox">
-      <canvas id="evmap" tabindex="0" aria-label="Mapa de puntos de carga de Castilla y León"></canvas>
-      <div class="zoom"><button id="ezin" aria-label="Acercar">+</button><button id="ezout" aria-label="Alejar">−</button><button id="ezre" aria-label="Ver toda la comunidad" style="font-size:13px">⤢</button></div>
+      <div id="evmap" class="lmap" role="region" aria-label="Mapa de puntos de carga de Castilla y León"></div>
+      <div class="zoom"><button id="ezin" aria-label="Acercar">+</button><button id="ezout" aria-label="Alejar">−</button><button id="ezre" aria-label="Ver toda la comunidad" style="font-size:13px">⤢</button><button id="ezsat" class="capa" aria-pressed="false" title="Ver satélite">🛰️</button></div>
     </div>
     <div class="evlegend"><span><span class="dot" style="background:var(--ev)"></span>Carga rápida (43 kW o más)</span><span><span class="dot" style="background:#8a96a3"></span>Solo carga normal</span><span style="opacity:.8"><span class="dot" style="background:transparent;border:1px solid #8a96a3;width:6px;height:6px"></span>Gasolineras, como referencia</span></div>
     <div class="pick" id="evpick"><span class="muted">Toca cualquier punto del mapa para ver el cargador.</span></div>
@@ -412,6 +423,9 @@ __CONSEJOS__
   <span><a href="aviso-legal.html">Aviso legal</a> · <a href="privacidad.html">Privacidad</a> · <a href="cookies.html">Cookies</a> · <a href="contacto.html">Contacto</a></span>
 </div></footer>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<script src="https://unpkg.com/@maplibre/maplibre-gl-leaflet@0.0.22/leaflet-maplibre-gl.js"></script>
 <script>
 // [provincia, municipio, rótulo, dirección, horario, p95, diésel, p98 (milésimas de €), lat, lon]
 const S=__DATA__;
@@ -444,68 +458,44 @@ function computeRanks(){
 }
 const colorOf=i=>rankOf.has(i)?ramp(rankOf.get(i)):null;
 
-/* Mapa de puntos genérico sobre canvas */
-function makeMap(canvas,opts){
-  const ctx=canvas.getContext("2d");
-  const K=Math.cos(41.6*Math.PI/180);
-  const B={x0:-7.15*K,x1:-1.75*K,y0:39.95,y1:43.35};
-  let view={...B}, W=0,H=0,dpr=1;
-  const st={sel:-1};
-  function fit(b){const bw=b.x1-b.x0,bh=b.y1-b.y0,ar=W/H;let cx=(b.x0+b.x1)/2,cy=(b.y0+b.y1)/2,w=bw,h=bh;if(w/h<ar)w=h*ar;else h=w/ar;w*=1.06;h*=1.06;view={x0:cx-w/2,x1:cx+w/2,y0:cy-h/2,y1:cy+h/2}}
-  const px=(lat,lon)=>[(lon*K-view.x0)/(view.x1-view.x0)*W,(view.y1-lat)/(view.y1-view.y0)*H];
-  function size(){const r=canvas.getBoundingClientRect();if(!r.width||!r.height)return;dpr=window.devicePixelRatio||1;W=r.width;H=r.height;canvas.width=Math.round(W*dpr);canvas.height=Math.round(H*dpr);fit(opts.bounds&&opts.bounds()||B);draw()}
-  function draw(){
-    const cs=getComputedStyle(document.documentElement);
-    ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,W,H);
-    const z=(B.x1-B.x0)/(view.x1-view.x0);
-    /* Provincias: relleno suave alterno y frontera marcada */
-    const active=opts.activeProv?opts.activeProv():-1;
-    PROV.forEach((ring,k)=>{ctx.beginPath();ring.forEach(([la,lo],n)=>{const[x,y]=px(la,lo);n?ctx.lineTo(x,y):ctx.moveTo(x,y)});ctx.closePath();
-      ctx.fillStyle=cs.getPropertyValue(k===active?"--prov-on":(k%2?"--prov-a":"--prov-b"));ctx.fill()});
-    ctx.lineJoin="round";
-    PROV.forEach((ring,k)=>{if(k===active)return;ctx.beginPath();ring.forEach(([la,lo],n)=>{const[x,y]=px(la,lo);n?ctx.lineTo(x,y):ctx.moveTo(x,y)});ctx.closePath();
-      ctx.strokeStyle=cs.getPropertyValue("--prov-line");ctx.lineWidth=1.5;ctx.stroke()});
-    if(active>=0){ctx.beginPath();PROV[active].forEach(([la,lo],n)=>{const[x,y]=px(la,lo);n?ctx.lineTo(x,y):ctx.moveTo(x,y)});ctx.closePath();ctx.strokeStyle=cs.getPropertyValue("--accent");ctx.lineWidth=2.5;ctx.stroke()}
-    const r=Math.min(7,3.2+z*.8);
-    curR=r;
-    const pts=opts.points();
-    pts.forEach(p=>{const[x,y]=px(p.lat,p.lon);if(x<-20||x>W+20||y<-10||y>H+30)return;
-      if(p.pick&&p.id!==st.sel){pin(x,y,p.r?p.r(r):r,p.fill||"#8a96a3",p.fill?1:.55)}
-      else if(!p.pick){ctx.beginPath();ctx.arc(x,y,p.r?p.r(r):r,0,Math.PI*2);if(p.fill){ctx.fillStyle=p.fill;ctx.fill()}if(p.stroke){ctx.strokeStyle=p.stroke;ctx.lineWidth=1;ctx.stroke()}}});
-    if(opts.labels){ctx.font="700 14px Barlow, system-ui, sans-serif";ctx.textAlign="center";ctx.textBaseline="middle";
-      opts.labels().forEach(([name,lat,lon],k)=>{const[x,y]=px(lat,lon);if(x>0&&x<W&&y>0&&y<H){ctx.lineWidth=4;ctx.strokeStyle=cs.getPropertyValue("--map-bg");ctx.strokeText(name.toUpperCase(),x,y);ctx.fillStyle=cs.getPropertyValue(k===active?"--accent":"--map-label");ctx.fillText(name.toUpperCase(),x,y)}});ctx.textBaseline="alphabetic"}
-    if(st.sel>=0){const p=pts.find(q=>q.id===st.sel);if(p){const[x,y]=px(p.lat,p.lon);const R=r*1.7;pin(x,y,R,p.fill||"#8a96a3",1,cs.getPropertyValue("--fg"));if(p.label)bubble(x,y-R*2.9-6,p.label,cs)}}
-  }
-  /* Marcador con forma de gota invertida: la punta toca el lugar exacto */
-  function pin(x,y,R,fill,alpha,ring){
-    const h=R*2.4,cy=y-h,a=Math.acos(R/h);
-    ctx.globalAlpha=alpha;ctx.beginPath();ctx.moveTo(x,y);ctx.arc(x,cy,R,Math.PI/2+a,Math.PI/2-a);ctx.closePath();
-    ctx.fillStyle=fill;ctx.fill();ctx.lineWidth=ring?2.5:1;ctx.strokeStyle=ring||"rgba(0,0,0,.35)";ctx.stroke();
-    ctx.beginPath();ctx.arc(x,cy,R*.38,0,Math.PI*2);ctx.fillStyle="rgba(255,255,255,.9)";ctx.fill();ctx.globalAlpha=1;
-  }
-  function bubble(x,y,text,cs){
-    ctx.font="600 14px Barlow, system-ui, sans-serif";const w=Math.min(ctx.measureText(text).width+20,W-12),h=28;
-    let bx=Math.max(6,Math.min(W-w-6,x-w/2)),by=y-h;if(by<4)by=4;
-    ctx.fillStyle=cs.getPropertyValue("--surface");ctx.strokeStyle=cs.getPropertyValue("--line");ctx.lineWidth=1;
-    ctx.beginPath();ctx.roundRect?ctx.roundRect(bx,by,w,h,8):ctx.rect(bx,by,w,h);ctx.fill();ctx.stroke();
-    ctx.beginPath();ctx.moveTo(x-6,by+h);ctx.lineTo(x+6,by+h);ctx.lineTo(x,by+h+6);ctx.closePath();ctx.fill();
-    ctx.fillStyle=cs.getPropertyValue("--fg");ctx.textAlign="left";ctx.textBaseline="middle";
-    let t=text;while(ctx.measureText(t).width>w-20&&t.length>3)t=t.slice(0,-2);if(t!==text)t=t.slice(0,-1)+"…";
-    ctx.fillText(t,bx+10,by+h/2+1);ctx.textBaseline="alphabetic";ctx.textAlign="center";
-  }
-  let curR=5;
-  function hit(mx,my){let best=-1,bd=18*18;opts.points().forEach(p=>{if(!p.pick)return;const[x,y]=px(p.lat,p.lon),hy=y-curR*2.4,d=(x-mx)**2+(hy-my)**2;if(d<bd){bd=d;best=p.id}});return best}
-  function zoomAt(f,mx,my){const ux=view.x0+(mx/W)*(view.x1-view.x0),uy=view.y1-(my/H)*(view.y1-view.y0);
-    const w=(view.x1-view.x0)*f;if(w<0.08||w>(B.x1-B.x0)*1.6)return;const h=(view.y1-view.y0)*f;
-    view={x0:ux-(mx/W)*w,x1:ux-(mx/W)*w+w,y1:uy+(my/H)*h,y0:uy+(my/H)*h-h};draw()}
-  let drag=null,moved=false;
-  canvas.addEventListener("pointerdown",e=>{drag={x:e.clientX,y:e.clientY,v:{...view}};moved=false;canvas.setPointerCapture(e.pointerId)});
-  canvas.addEventListener("pointermove",e=>{if(!drag)return;const dx=e.clientX-drag.x,dy=e.clientY-drag.y;if(Math.abs(dx)+Math.abs(dy)>4){moved=true;canvas.classList.add("drag")}
-    if(moved){const sx=(drag.v.x1-drag.v.x0)/W,sy=(drag.v.y1-drag.v.y0)/H;view={x0:drag.v.x0-dx*sx,x1:drag.v.x1-dx*sx,y0:drag.v.y0+dy*sy,y1:drag.v.y1+dy*sy};draw()}});
-  canvas.addEventListener("pointerup",e=>{canvas.classList.remove("drag");if(drag&&!moved){const r=canvas.getBoundingClientRect();const id=hit(e.clientX-r.left,e.clientY-r.top);st.sel=id;draw();opts.onPick(id)}drag=null});
-  canvas.addEventListener("wheel",e=>{e.preventDefault();const r=canvas.getBoundingClientRect();zoomAt(e.deltaY<0?0.8:1.25,e.clientX-r.left,e.clientY-r.top)},{passive:false});
-  new ResizeObserver(size).observe(canvas);
-  return{draw,size,refit(){fit(opts.bounds&&opts.bounds()||B);draw()},zoom(f){zoomAt(f,W/2,H/2)},select(id){st.sel=id;draw()}};
+/* Mapa real (calles de OpenFreeMap u satélite de Esri) con Leaflet */
+const CYL=[[39.95,-7.15],[43.35,-1.75]];
+function makeMap(el,opts){
+  const map=L.map(el,{zoomControl:false,minZoom:6,maxZoom:18,zoomSnap:.5,maxBounds:[[38.6,-9.2],[44.6,0.4]],maxBoundsViscosity:.8});
+  const ATR='<a href="https://openfreemap.org" target="_blank" rel="noopener">OpenFreeMap</a> © <a href="https://www.openmaptiles.org/" target="_blank" rel="noopener">OpenMapTiles</a> © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>';
+  let calles;
+  try{if(!window.maplibregl||!L.maplibreGL||!maplibregl.supported||!maplibregl.supported())throw 0;
+    calles=L.maplibreGL({style:"https://tiles.openfreemap.org/styles/liberty",attribution:ATR})}
+  catch(e){calles=L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:'© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>'})}
+  const sat=L.layerGroup([
+    L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",{maxZoom:19,maxNativeZoom:18,attribution:"Imágenes © Esri, Maxar, Earthstar Geographics"}),
+    L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}",{maxZoom:19,maxNativeZoom:18,opacity:.8}),
+    L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",{maxZoom:19,maxNativeZoom:18})]);
+  calles.addTo(map);let esSat=false;
+  const rend=L.canvas({padding:.3,tolerance:7});
+  const provLayer=L.layerGroup().addTo(map),pts=L.layerGroup().addTo(map),selLayer=L.layerGroup().addTo(map);
+  const st={sel:-1};let ready=false;
+  function drawProv(){provLayer.clearLayers();const act=opts.activeProv?opts.activeProv():-1,line=esSat?"#ffffff":"#2f5f8f";
+    PROV.forEach((r,k)=>L.polygon(r,{interactive:false,color:k===act?(esSat?"#ffd34d":"#0b5cad"):line,weight:k===act?3.2:1.6,opacity:.9,dashArray:k===act?null:"6 5",fill:k===act,fillColor:"#0b5cad",fillOpacity:.07}).addTo(provLayer));
+    if(opts.labels)opts.labels().forEach(([n,la,lo])=>L.tooltip({permanent:true,direction:"center",className:"plabel",interactive:false}).setLatLng([la,lo]).setContent(n.toUpperCase()).addTo(provLayer))}
+  function draw(){if(!ready)return;drawProv();pts.clearLayers();selLayer.clearLayers();
+    const z=map.getZoom(),R=z>=11?8:z>=9?7:6,list=opts.points();let selP=null;
+    list.forEach(p=>{if(p.id===st.sel){selP=p;return}
+      const r=p.pick?(p.r?Math.max(3,R*.7):R):2.2;
+      const m=L.circleMarker([p.lat,p.lon],{renderer:rend,radius:r,weight:p.pick?1.2:1,color:p.pick?"rgba(0,0,0,.45)":(esSat?"#fff":"#55616e"),fillColor:p.fill||"#8a96a3",fillOpacity:p.pick?(p.fill?.95:.7):0,interactive:!!p.pick,bubblingMouseEvents:false});
+      if(p.pick)m.on("click",()=>{st.sel=p.id;draw();opts.onPick(p.id)});m.addTo(pts)});
+    if(selP){const m=L.circleMarker([selP.lat,selP.lon],{renderer:rend,radius:R+5,weight:3,color:esSat?"#fff":"#17212b",fillColor:selP.fill||"#8a96a3",fillOpacity:1}).addTo(selLayer);
+      if(selP.label)m.bindTooltip(selP.label,{permanent:true,direction:"top",offset:[0,-R-6],className:"selbl"}).openTooltip()}
+    el.classList.toggle("zlej",z>=9)}
+  map.on("zoomend",draw);
+  function bounds(){return opts.bounds&&opts.bounds()||CYL}
+  function refit(){map.fitBounds(bounds(),{padding:[14,14]});draw()}
+  function size(){if(!el.offsetWidth)return;map.invalidateSize();if(!ready){ready=true;refit()}else draw()}
+  function setSat(v){esSat=v;if(v){map.removeLayer(calles);sat.addTo(map)}else{map.removeLayer(sat);calles.addTo(map)}
+    el.classList.toggle("sat",v);if(opts.satBtn){opts.satBtn.setAttribute("aria-pressed",v);opts.satBtn.textContent=v?"🗺️":"🛰️";opts.satBtn.title=v?"Ver callejero":"Ver satélite"}draw()}
+  if(opts.satBtn)opts.satBtn.onclick=()=>setSat(!esSat);
+  new ResizeObserver(size).observe(el);
+  return{draw,size,refit,zoom(f){f<1?map.zoomIn(1):map.zoomOut(1)},select(id){st.sel=id;draw()}};
 }
 
 /* Etiquetas de provincia: centro de sus gasolineras */
@@ -514,7 +504,8 @@ const labels=P.map((n,k)=>{const r=PROV[k];let A=0,cx=0,cy=0;for(let i=0;i<r.len
 const gasMap=makeMap($("map"),{
   labels:()=>labels,
   activeProv:()=>prov,
-  bounds:()=>{if(prov<0)return null;const K=Math.cos(41.6*Math.PI/180),xs=S.filter(s=>s[0]===prov);return{x0:Math.min(...xs.map(s=>s[9]))*K,x1:Math.max(...xs.map(s=>s[9]))*K,y0:Math.min(...xs.map(s=>s[8])),y1:Math.max(...xs.map(s=>s[8]))}},
+  bounds:()=>prov<0?null:L.latLngBounds(PROV[prov]),
+  satBtn:$("zsat"),
   points:()=>{const out=[];const muted=getComputedStyle(document.documentElement).getPropertyValue("--map-label");
     S.forEach((s,i)=>{if(prov>=0&&s[0]!==prov)return;const c=colorOf(i);out.push({id:i,lat:s[8],lon:s[9],fill:c,stroke:c?"rgba(0,0,0,.25)":muted,pick:true,r:c?null:(r=>r*.7),label:s[2]+" · "+s[1]})});
     out.sort((a,b)=>(rankOf.get(b.id)??-1)-(rankOf.get(a.id)??-1));return out},
@@ -570,6 +561,7 @@ const isFast=e=>e[6]!=null?e[6]>=43:/CCS|CHAdeMO/.test(e[5]);
 const kw=e=>e[6]?`hasta ${e[6]} kW`:"";
 const evMap=makeMap($("evmap"),{
   labels:()=>labels,
+  satBtn:$("ezsat"),
   points:()=>{const cs=getComputedStyle(document.documentElement),ev=cs.getPropertyValue("--ev"),lab=cs.getPropertyValue("--map-label");
     const out=S.map((s,i)=>({id:-2-i,lat:s[8],lon:s[9],stroke:lab,pick:false,r:r=>1.6}));
     EV.forEach((e,i)=>{const f=isFast(e);if(evMode==="fast"&&!f||evMode==="slow"&&f)return;out.push({id:i,lat:e[0],lon:e[1],fill:f?ev:"#8a96a3",stroke:"rgba(0,0,0,.3)",pick:true,label:e[2]})});return out},
