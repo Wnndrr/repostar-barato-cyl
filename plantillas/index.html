@@ -488,9 +488,12 @@ function makeMap(el,opts){
       const m=L.circleMarker([p.lat,p.lon],{renderer:rend,radius:r,weight:p.pick?1.2:1,color:p.pick?"rgba(0,0,0,.45)":(esSat?"#fff":"#55616e"),fillColor:p.fill||"#8a96a3",fillOpacity:p.pick?(p.fill?.95:.7):0,interactive:!!p.pick,bubblingMouseEvents:false});
       if(p.pick)m.on("click",()=>{st.sel=p.id;draw();opts.onPick(p.id)});m.addTo(pts)});
     if(selP){const m=L.circleMarker([selP.lat,selP.lon],{renderer:rend,radius:R+5,weight:3,color:esSat?"#fff":"#17212b",fillColor:selP.fill||"#8a96a3",fillOpacity:1}).addTo(selLayer);
-      if(selP.label)m.bindTooltip(`<span class="nmt">${esc(selP.label)}</span>${selP.href?`<a class="ir" href="${selP.href}" target="_blank" rel="noopener">📍 Cómo llegar ↗</a>`:""}`,{permanent:true,interactive:true,direction:"top",offset:[0,-R-6],className:"selbl"}).openTooltip()}
+      if(selP.label)m.bindTooltip(`<span class="nmt">${esc(selP.label)}</span>${selP.href?`<a class="ir" href="${selP.href}" target="_blank" rel="noopener">📍 Cómo llegar ↗</a>`:""}`,{permanent:true,interactive:true,direction:"top",offset:[0,-R-6],className:"selbl"}).openTooltip();const te=m.getTooltip().getElement();if(te)L.DomEvent.disableClickPropagation(te)}
     el.classList.toggle("zlej",z>=9)}
   map.on("zoomend",draw);
+  function quitar(){if(st.sel===-1)return;st.sel=-1;draw();opts.onPick(-1)}
+  map.on("click",quitar);
+  document.addEventListener("click",e=>{if(el.contains(e.target)||(opts.keep&&e.target.closest(opts.keep))||e.target.closest(".zoom"))return;quitar()});
   function bounds(){return opts.bounds&&opts.bounds()||CYL}
   function refit(){map.fitBounds(bounds(),{padding:[14,14]});draw()}
   function size(){if(!el.offsetWidth)return;map.invalidateSize();if(!ready){ready=true;const capa=esSat?sat:calles;map.removeLayer(capa);capa.addTo(map);refit()}else draw()}
@@ -509,6 +512,7 @@ const gasMap=makeMap($("map"),{
   activeProv:()=>prov,
   bounds:()=>prov<0?null:L.latLngBounds(PROV[prov]),
   satBtn:$("zsat"),
+  keep:"#pick",
   points:()=>{const out=[];const muted=getComputedStyle(document.documentElement).getPropertyValue("--map-label");
     S.forEach((s,i)=>{if(prov>=0&&s[0]!==prov)return;const c=colorOf(i);out.push({id:i,lat:s[8],lon:s[9],fill:c,stroke:c?"rgba(0,0,0,.25)":muted,pick:true,r:c?null:(r=>r*.7),label:s[2]+" · "+nomP(s[1]),href:ruta(s)})});
     out.sort((a,b)=>(rankOf.get(b.id)??-1)-(rankOf.get(a.id)??-1));return out},
@@ -565,6 +569,7 @@ const kw=e=>e[6]?`hasta ${e[6]} kW`:"";
 const evMap=makeMap($("evmap"),{
   labels:()=>labels,
   satBtn:$("ezsat"),
+  keep:"#evpick",
   points:()=>{const cs=getComputedStyle(document.documentElement),ev=cs.getPropertyValue("--ev"),lab=cs.getPropertyValue("--map-label");
     const out=S.map((s,i)=>({id:-2-i,lat:s[8],lon:s[9],stroke:lab,pick:false,r:r=>1.6}));
     EV.forEach((e,i)=>{const f=isFast(e);if(evMode==="fast"&&!f||evMode==="slow"&&f)return;out.push({id:i,lat:e[0],lon:e[1],fill:f?ev:"#8a96a3",stroke:"rgba(0,0,0,.3)",pick:true,label:e[2],href:`https://www.google.com/maps/dir/?api=1&destination=${e[0]},${e[1]}`})});return out},
