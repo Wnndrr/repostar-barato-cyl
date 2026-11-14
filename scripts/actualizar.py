@@ -651,12 +651,14 @@ TEMA_HEAD = '<script>try{var t=localStorage.getItem("tema");if(t)document.docume
 
 
 def poner_tema():
+    import hashlib
+    ver = hashlib.md5((RAIZ / "paginas" / "tema.js").read_bytes()).hexdigest()[:8]
     n = 0
     for f in SALIDA.rglob("*.html"):
         t = f.read_text(encoding="utf-8")
         if 'class="opc"' in t and "tema.js" not in t:
             t = t.replace('<meta charset="utf-8">', '<meta charset="utf-8">\n' + TEMA_HEAD, 1)
-            t = t.replace("</body>", '<script src="/tema.js" defer></script>\n</body>', 1)
+            t = t.replace("</body>", f'<script src="/tema.js?v={ver}" defer></script>\n</body>', 1)
             f.write_text(t, encoding="utf-8")
             n += 1
     print(f"Selector de tema en {n} páginas")
