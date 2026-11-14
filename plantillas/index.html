@@ -208,7 +208,7 @@ html{scroll-padding-top:calc(var(--hdr,72px) + 8px)}
 <header class="top"><div class="wrap">
   <a class="brand" href="#inicio"><img src="logo-192.png" width="34" height="34" alt="">Repostar Barato CyL</a>
   <nav class="menu" aria-label="Secciones">
-    <a href="#mapa">Mapa</a><a href="#provincias">Provincias</a><a href="#ranking">Todas las gasolineras</a><a href="#pueblos">Pueblos</a><a href="#calculadora">Calculadora</a>
+    <a href="#inicio">Inicio</a><a href="#mapa">Mapa</a><a href="#provincias">Provincias</a><a href="#ranking">Todas las gasolineras</a><a href="#pueblos">Pueblos</a><a href="#calculadora">Calculadora</a>
     <a href="consejos/">Consejos</a>
     <a href="mapa.html">Mapa satélite</a>
     <button class="evlink instalar" id="instalar" type="button" hidden>📲 Instalar app</button>
@@ -592,6 +592,7 @@ $("eq").oninput=evTable;
 function route(){const ev=location.hash==="#electrico";$("viewMain").hidden=ev;$("viewEv").hidden=!ev;
   if(ev){evMap.size();window.scrollTo(0,0)}else{gasMap.size();const t=location.hash&&document.querySelector(location.hash);if(t&&location.hash!=="#inicio")t.scrollIntoView();else window.scrollTo(0,0)}}
 addEventListener("hashchange",route);
+document.querySelectorAll('a[href="#inicio"]').forEach(x=>x.addEventListener("click",()=>{if(location.hash==="#inicio")scrollTo({top:0,behavior:"smooth"})}));
 const mq=matchMedia("(prefers-color-scheme: dark)");mq.addEventListener&&mq.addEventListener("change",()=>{gasMap.draw();evMap.draw()});
 new MutationObserver(()=>{gasMap.draw();evMap.draw()}).observe(document.documentElement,{attributes:true,attributeFilter:["data-theme"]});
 hero();render();evTable();route();
