@@ -13,7 +13,7 @@ const st=document.createElement("style");st.textContent=`
 .opc{background:transparent;border:0;padding:0;color:inherit;font:inherit;cursor:pointer;white-space:nowrap}
 .opc:hover,.opc[aria-expanded="true"]{color:var(--accent)}`;document.head.appendChild(st);
 const menu=document.createElement("div");menu.className="opcmenu";menu.hidden=true;menu.setAttribute("role","menu");
-menu.innerHTML=`<h4>Tema</h4><button role="menuitemradio" data-t="light">☀️ Tema claro</button><button role="menuitemradio" data-t="dark">🌙 Tema oscuro</button><button role="menuitemradio" data-t="auto">🌗 Automático (como el móvil)</button>`;
+menu.innerHTML=`<h4>Tema</h4><button role="menuitemradio" data-t="light">☀️ Tema claro</button><button role="menuitemradio" data-t="dark">🌙 Tema oscuro</button><button role="menuitemradio" data-t="auto">🌗 Automático (como el dispositivo)</button>`;
 document.addEventListener("DOMContentLoaded",()=>document.body.appendChild(menu));if(document.body)document.body.appendChild(menu);
 function pintar(){const e=elegido();menu.querySelectorAll("[data-t]").forEach(b=>b.setAttribute("aria-checked",b.dataset.t===e))}
 let btnAbierto=null,y0=0;
