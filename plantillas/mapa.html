@@ -63,7 +63,7 @@ const sat=L.layerGroup([
   L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}",{maxZoom:19,maxNativeZoom:18,opacity:.8}),
   L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",{maxZoom:19,maxNativeZoom:18})]).addTo(map);
 let calles;
-try{if(!window.maplibregl||!L.maplibreGL||!maplibregl.supported||!maplibregl.supported())throw 0;
+try{const cv=document.createElement("canvas");if(!window.maplibregl||!L.maplibreGL||!(cv.getContext("webgl2")||cv.getContext("webgl")))throw 0;
   calles=L.maplibreGL({style:"https://tiles.openfreemap.org/styles/liberty",attribution:'<a href="https://openfreemap.org" target="_blank" rel="noopener">OpenFreeMap</a> © <a href="https://www.openmaptiles.org/" target="_blank" rel="noopener">OpenMapTiles</a> © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> · Precios: MITECO'})}
 catch(e){calles=L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:'© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> · Precios: MITECO'})}
 let esSat=true;const capaBtn=document.getElementById("capa");
