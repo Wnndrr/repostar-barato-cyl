@@ -654,7 +654,7 @@ def poner_tema():
     n = 0
     for f in SALIDA.rglob("*.html"):
         t = f.read_text(encoding="utf-8")
-        if 'class="tema"' in t and "tema.js" not in t:
+        if 'class="opc"' in t and "tema.js" not in t:
             t = t.replace('<meta charset="utf-8">', '<meta charset="utf-8">\n' + TEMA_HEAD, 1)
             t = t.replace("</body>", '<script src="/tema.js" defer></script>\n</body>', 1)
             f.write_text(t, encoding="utf-8")

@@ -9,7 +9,41 @@
   "background_color": "#f3f5f7",
   "theme_color": "#121a22",
   "icons": [
-    {"src": "/logo-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
-    {"src": "/logo-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"}
+    {
+      "src": "/logo-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/logo-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Mi gasolinera",
+      "short_name": "Mi gasolinera",
+      "url": "/?app=1#migasolinera",
+      "icons": [
+        {
+          "src": "/logo-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Gasolineras cerca de mí",
+      "short_name": "Cerca de mí",
+      "url": "/?app=1#mapa",
+      "icons": [
+        {
+          "src": "/logo-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
   ]
 }
