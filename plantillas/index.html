@@ -313,6 +313,12 @@ __PUEBLOS__
       <label class="field grow" for="q"><span>Buscar por pueblo o marca</span>
         <input id="q" type="search" placeholder="Ej.: Aranda de Duero, Benavente, Repsol…" autocomplete="off">
       </label>
+      <label class="field" for="fsel"><span>Combustible</span>
+        <select id="fsel">
+          <option value="5">Gasolina 95</option><option value="6">Diésel</option><option value="7">Gasolina 98</option>
+          <option value="10">Autogás (GLP)</option><option value="11">AdBlue</option><option value="12">Gas natural</option>
+        </select>
+      </label>
       <label class="field" for="psel"><span>Provincia</span>
         <select id="psel"></select>
       </label>
@@ -544,7 +550,8 @@ function table(){
 }
 $("moreBtn").onclick=()=>{shown+=25;table()};
 $("q").oninput=()=>{shown=25;table()};
-document.querySelectorAll("[data-f]").forEach(b=>b.onclick=()=>{fuel=+b.dataset.f;document.querySelectorAll("[data-f]").forEach(x=>x.setAttribute("aria-pressed",x===b));render()});
+document.querySelectorAll("[data-f]").forEach(b=>b.onclick=()=>{fuel=+b.dataset.f;document.querySelectorAll("[data-f]").forEach(x=>x.setAttribute("aria-pressed",x===b));$("fsel").value=b.dataset.f;render()});
+$("fsel").value=fuel;$("fsel").onchange=e=>document.querySelector(`[data-f="${e.target.value}"]`).click();
 function render(){computeRanks();legend();provs();table();gasMap.draw()}
 
 /* ---- Eléctricos ---- */
