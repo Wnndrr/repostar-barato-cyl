@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:1080px;height:1920px;overflow:hidden;background:#0f1923}
+body{font-family:"Inter Display","Inter",sans-serif;color:#fff;position:relative}
+#bg{position:absolute;inset:0;background:radial-gradient(1200px 900px at 50% 30%,#18334f 0%,#0f1923 70%)}
+.sc{position:absolute;inset:0;opacity:0}
+.c{position:absolute;left:0;right:0;text-align:center}
+.h1{font-weight:900;font-size:92px;line-height:1.02;letter-spacing:-1px}
+.h2{font-weight:800;font-size:64px;line-height:1.08}
+.p{font-weight:500;font-size:44px;line-height:1.25;color:#c9d6e2}
+.big{font-weight:900;font-size:210px;letter-spacing:-4px;line-height:1}
+.g{color:#3fd17f}.r{color:#ff5d4f}.y{color:#ffc93c}.b{color:#5aa2ec}
+.pill{display:inline-block;background:#0b5cad;color:#fff;border-radius:999px;padding:22px 46px;font-weight:800;font-size:56px}
+.card{position:absolute;background:#fff;color:#17212b;border-radius:34px;box-shadow:0 30px 80px rgba(0,0,0,.45)}
+.bubble{position:absolute;background:#fff;color:#17212b;border-radius:40px;padding:32px 40px;font-weight:700;font-size:48px;line-height:1.2;box-shadow:0 20px 50px rgba(0,0,0,.35);transform-origin:12% 100%}
+.bubble:after{content:"";position:absolute;left:70px;bottom:-34px;border:22px solid transparent;border-top:36px solid #fff;border-bottom:0}
+.row{display:flex;align-items:center;gap:26px;background:#fff;color:#17212b;border-radius:24px;padding:20px 30px;margin:0 70px 16px;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+.row .pv{font-weight:800;font-size:40px;width:250px}
+.row .st{flex:1;font-size:30px;color:#5b6876;line-height:1.2;font-weight:500}
+.row .pr{font-weight:900;font-size:50px;color:#1d8a4e;font-variant-numeric:tabular-nums}
+#gotita{position:absolute;width:330px;height:400px;left:40px;top:1290px;transform-origin:50% 100%}
+.tap{position:absolute;width:90px;height:90px;border-radius:50%;border:8px solid #ffc93c;opacity:0}
+</style></head><body>
+<div id="bg"></div>
+
+<!-- 1 Hook -->
+<div class="sc" id="s1">
+  <div class="c h2" id="s1a" style="top:250px">En <span class="y">León</span>, hoy, el litro de<br>gasolina 95 cuesta…</div>
+  <div class="c" id="s1b" style="top:560px"><div class="p">desde</div><div class="big g">1,399 €</div></div>
+  <div class="c" id="s1c" style="top:880px"><div class="p">hasta</div><div class="big r">1,799 €</div></div>
+</div>
+<!-- 2 Ahorro -->
+<div class="sc" id="s2">
+  <div class="c h2" style="top:300px">En un depósito<br>de 50 litros son…</div>
+  <div class="c big y" id="s2n" style="top:640px;font-size:300px">0 €</div>
+  <div class="c h2" id="s2b" style="top:1000px">de diferencia</div>
+</div>
+<!-- 3 Presentación -->
+<div class="sc" id="s3">
+  <div class="c" style="top:260px"><svg id="logo" width="380" height="380" viewBox="0 0 512 512"><path d="M256 492 C 205 410, 76 330, 76 206 A180 180 0 1 1 436 206 C 436 330, 307 410, 256 492 Z" fill="#0B5CAD"/><path d="M256 74 C 236 104, 160 196, 160 250 A96 96 0 0 0 352 250 C 352 196, 276 104, 256 74 Z" fill="#fff"/><rect x="238" y="178" width="36" height="66" rx="6" fill="#1D8A4E"/><path d="M206 236 H306 L256 302 Z" fill="#1D8A4E" stroke="#1D8A4E" stroke-width="10" stroke-linejoin="round"/></svg></div>
+  <div class="c h1" id="s3t" style="top:690px">Repostar<br>Barato CyL</div>
+  <div class="c" id="s3u" style="top:930px"><span class="pill">repostarbaratocyl.es</span></div>
+</div>
+<!-- 4 Mapa -->
+<div class="sc" id="s4">
+  <div class="c h2" style="top:150px">Las <span class="y">923</span> gasolineras<br>de Castilla y León</div>
+  <svg id="mapa" style="position:absolute;left:40px;top:380px" width="1000" height="800"></svg>
+  <div class="c" id="ley" style="top:1190px;font-size:38px;font-weight:700"><span class="g">● Barata</span> &nbsp;&nbsp; <span class="y">● Media</span> &nbsp;&nbsp; <span class="r">● Cara</span></div>
+</div>
+<!-- 5 Ranking -->
+<div class="sc" id="s5">
+  <div class="c h2" style="top:110px">La más barata hoy<br>en cada provincia</div>
+  <div id="rank" style="position:absolute;top:330px;left:0;right:0"></div>
+</div>
+<!-- 6 Cerca de mí -->
+<div class="sc" id="s6">
+  <div class="c h2" style="top:120px">¿Cuál tienes <span class="y">cerca</span>?</div>
+  <div class="card" id="phone" style="left:250px;top:300px;width:580px;height:1000px;border-radius:60px;border:16px solid #26323d;overflow:hidden;background:#f3f5f7">
+    <div style="background:#121a22;color:#fff;padding:26px 30px;font-weight:800;font-size:30px">Repostar Barato CyL</div>
+    <div style="padding:26px">
+      <div id="btnC" style="background:#0b5cad;color:#fff;border-radius:999px;padding:20px;text-align:center;font-weight:800;font-size:30px">Gasolineras cerca de mí</div>
+      <div id="selC" style="margin-top:16px;border:4px solid #0b5cad;border-radius:999px;padding:14px;text-align:center;font-weight:700;font-size:28px;color:#17212b;opacity:0">A menos de 10 km ▾</div>
+      <svg id="mini" width="496" height="300" style="margin-top:18px;border-radius:20px;background:#e8ecef;opacity:0"></svg>
+      <div id="lst" style="margin-top:16px"></div>
+    </div>
+  </div>
+  <div class="tap" id="tap1" style="left:495px;top:450px"></div>
+</div>
+<!-- 7 Calculadora -->
+<div class="sc" id="s7">
+  <div class="c h2" style="top:220px">Con <span class="y">50 €</span> te llevas…</div>
+  <div class="card" style="left:90px;top:480px;width:420px;height:470px;text-align:center;padding-top:50px">
+    <div style="font-size:36px;font-weight:700;color:#1d8a4e">En la más barata</div><div id="l1" style="font-size:120px;font-weight:900;margin-top:30px">0</div><div style="font-size:44px;font-weight:700;color:#5b6876">litros</div></div>
+  <div class="card" style="left:570px;top:480px;width:420px;height:470px;text-align:center;padding-top:50px">
+    <div style="font-size:36px;font-weight:700;color:#c0392b">En la más cara</div><div id="l2" style="font-size:120px;font-weight:900;margin-top:30px">0</div><div style="font-size:44px;font-weight:700;color:#5b6876">litros</div></div>
+  <div class="c p" id="s7b" style="top:1010px">Calculadora incluida en la web</div>
+</div>
+<!-- 8 Eléctrico -->
+<div class="sc" id="s8">
+  <svg class="c" id="rayo" style="top:200px;left:410px" width="260" height="320" viewBox="0 0 260 320"><path d="M150 0 L20 180 H120 L90 320 L240 120 H140 Z" fill="#3fd17f"/></svg>
+  <div class="c h2" style="top:580px">¿Coche eléctrico?</div>
+  <div class="c big g" id="s8n" style="top:740px;font-size:220px">0</div>
+  <div class="c p" style="top:980px">puntos de carga en el mapa,<br><span class="g" style="font-weight:800">434 de carga rápida</span></div>
+</div>
+<!-- 9 Cierre -->
+<div class="sc" id="s9">
+  <div class="c h1" style="top:230px">Gratis.<br>Sin registro.</div>
+  <div class="c p" id="s9a" style="top:500px">Precios oficiales del Ministerio,<br>actualizados dos veces al día.</div>
+  <div class="c" id="s9u" style="top:760px"><span class="pill" style="font-size:66px;padding:30px 54px">repostarbaratocyl.es</span></div>
+  <div class="c p" id="s9b" style="top:930px">Guárdala en tu móvil como una app</div>
+</div>
+
+<!-- Gotita -->
+<svg id="gotita" viewBox="0 0 330 400">
+  <defs><linearGradient id="gg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4aa8ff"/><stop offset="1" stop-color="#0b5cad"/></linearGradient></defs>
+  <ellipse cx="165" cy="388" rx="95" ry="12" fill="rgba(0,0,0,.35)" id="sombra"/>
+  <g id="cuerpo">
+    <g id="brazoI" transform="rotate(0 70 250)"><path d="M70 250 Q 30 270 26 300" stroke="#0b5cad" stroke-width="22" stroke-linecap="round" fill="none"/></g>
+    <g id="brazoD"><path d="M260 250 Q 300 230 312 190" stroke="#0b5cad" stroke-width="22" stroke-linecap="round" fill="none"/><circle cx="312" cy="186" r="17" fill="#1a6fc4"/></g>
+    <path d="M165 20 C 140 70, 50 170, 50 255 A115 115 0 0 0 280 255 C 280 170, 190 70, 165 20 Z" fill="url(#gg)"/>
+    <ellipse cx="120" cy="170" rx="22" ry="44" fill="rgba(255,255,255,.35)" transform="rotate(25 120 170)"/>
+    <g id="ojos"><ellipse cx="128" cy="245" rx="24" ry="30" fill="#fff"/><ellipse cx="202" cy="245" rx="24" ry="30" fill="#fff"/>
+      <circle id="pi" cx="133" cy="250" r="13" fill="#10243a"/><circle id="pd" cx="207" cy="250" r="13" fill="#10243a"/>
+      <circle cx="138" cy="244" r="4.5" fill="#fff"/><circle cx="212" cy="244" r="4.5" fill="#fff"/></g>
+    <ellipse cx="100" cy="292" rx="18" ry="10" fill="#ff8fa3" opacity=".7"/><ellipse cx="230" cy="292" rx="18" ry="10" fill="#ff8fa3" opacity=".7"/>
+    <path id="boca" d="M140 298 Q 165 326 190 298" stroke="#10243a" stroke-width="9" stroke-linecap="round" fill="#10243a"/>
+  </g>
+</svg>
+<div class="bubble" id="bub" style="opacity:0"></div>
+
+<script>
+const D=__DATOS__;
+const cl=(x,a=0,b=1)=>Math.max(a,Math.min(b,x)),E={o:t=>1-Math.pow(1-t,3),io:t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2,back:t=>{const c=1.7;return 1+(c+1)*Math.pow(t-1,3)+c*Math.pow(t-1,2)}};
+const k=(t,a,d,e=E.o)=>e(cl((t-a)/d));
+const $=id=>document.getElementById(id);
+const fmt=n=>n.toFixed(3).replace(".",",");
+// escenas [id, inicio, fin]
+const SC=[["s1",0,6.2],["s2",6.2,10.2],["s3",10.2,14.4],["s4",14.4,21.6],["s5",21.6,28],["s6",28,33.6],["s7",33.6,37.6],["s8",37.6,41],["s9",41,46]];
+const DUR=46;
+// bocadillos de Gotita [inicio, fin, texto, x, y, ancho]
+const BUB=[[0.5,2.4,"¡Hola! Soy <span style='color:#0b5cad'>Gotita</span>.",330,1080,560],
+ [6.6,10,"¡Eso es dinero tirado!",330,1120,560],
+ [10.6,14.2,"¡Por eso existe esta web!",330,1120,640],
+ [15.2,21.3,"Verde: barata.<br>Rojo: cara.",330,1240,460],
+ [28.2,30.6,"Pulsa, elige los km…",330,1360,520],
+ [30.8,33.4,"…y te lleva<br>Google Maps.",330,1360,480],
+ [34,37.4,"¡7,9 litros gratis!",330,1150,540],
+ [41.6,45.8,"¡Pruébala hoy!",330,1150,480]];
+// mapa
+(function(){const s=$("mapa"),W=1000,H=800;let la0=90,la1=-90,lo0=180,lo1=-180;D.prov.flat().forEach(([a,b])=>{la0=Math.min(la0,a);la1=Math.max(la1,a);lo0=Math.min(lo0,b);lo1=Math.max(lo1,b)});
+ const cx=Math.cos((la0+la1)/2*Math.PI/180),sx=W/((lo1-lo0)*cx),sy=H/(la1-la0),sc=Math.min(sx,sy)*.96,ox=(W-(lo1-lo0)*cx*sc)/2,oy=(H-(la1-la0)*sc)/2;
+ window.PX=(a,b)=>[ox+(b-lo0)*cx*sc,oy+(la1-a)*sc];
+ let h="";D.prov.forEach(r=>{h+=`<path class="pv" d="M${r.map(p=>PX(...p).map(v=>v.toFixed(1)).join(",")).join("L")}Z" fill="rgba(90,162,236,.10)" stroke="#5aa2ec" stroke-width="3" stroke-dasharray="10 7"/>`});
+ const ps=D.pts.filter(p=>p[2]).sort((a,b)=>b[2]-a[2]),lo=1380,hi=1800;
+ window.NP=ps.length;
+ ps.forEach((p,i)=>{const t=cl((p[2]-lo)/(hi-lo)),c=t<.5?`hsl(${140-80*t*2},70%,48%)`:`hsl(${60-60*(t-.5)*2},85%,52%)`;const[x,y]=PX(p[0],p[1]);h+=`<circle class="pt" data-o="${(Math.sin(i*12.9898)*43758.5453%1+1)%1}" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="7" fill="${c}" stroke="rgba(0,0,0,.35)" stroke-width="1.5"/>`});
+ s.innerHTML=h;window.PTS=[...s.querySelectorAll(".pt")];window.PVS=[...s.querySelectorAll(".pv")];
+ PVS.forEach(p=>{const L=p.getTotalLength();p.dataset.l=L;p.style.strokeDasharray="10 7"});
+})();
+// ranking
+const RK=[["Burgos","Ballenoil · Miranda de Ebro",1.319],["Valladolid","Ballenoil · Medina del Campo",1.379],["León","Ballenoil · León",1.399],["Zamora","Agrinza · Villalpando",1.400],["Segovia","El Espinar",1.429],["Soria","Ólvega",1.431],["Salamanca","Peñaranda de Bracamonte",1.439],["Ávila","Alcampo · Ávila",1.458],["Palencia","Carrión de los Condes",1.469]];
+$("rank").innerHTML=RK.map(r=>`<div class="row"><div class="pv">${r[0]}</div><div class="st">${r[1]}</div><div class="pr">${fmt(r[2])} €</div></div>`).join("");
+const ROWS=[...document.querySelectorAll("#rank .row")];
+// mini mapa y lista del móvil
+(function(){let h="";for(let i=0;i<9;i++)h+=`<line x1="${i*62}" y1="0" x2="${i*62+80}" y2="300" stroke="#fff" stroke-width="10" opacity=".7"/>`;
+ h+=`<circle id="circ" cx="248" cy="150" r="120" fill="rgba(26,115,232,.12)" stroke="#1a73e8" stroke-width="4"/>`;
+ [[200,110,"#3fd17f"],[300,95,"#f0b429"],[170,190,"#ff5d4f"],[320,200,"#3fd17f"],[260,240,"#f0b429"],[110,80,"#ff5d4f"]].forEach(([x,y,c],i)=>h+=`<circle class="mp" cx="${x}" cy="${y}" r="14" fill="${c}" stroke="#fff" stroke-width="3"/>`);
+ h+=`<circle cx="248" cy="150" r="14" fill="#1a73e8" stroke="#fff" stroke-width="5"/>`;$("mini").innerHTML=h;
+ const L=[["Repsol","a 0,8 km","1,659 €"],["Ballenoil","a 3,2 km","1,409 €"],["Cepsa","a 6,5 km","1,589 €"]];
+ $("lst").innerHTML=L.map((r,i)=>`<div class="li" style="display:flex;justify-content:space-between;align-items:center;background:#fff;border-radius:18px;padding:16px 20px;margin-bottom:12px;opacity:0"><div><div style="font-weight:800;font-size:28px;color:#17212b">${r[0]}</div><div style="font-size:22px;color:#0b5cad;font-weight:700">${r[1]}</div></div><div style="text-align:right"><div style="font-weight:900;font-size:30px;color:${i==1?"#1d8a4e":"#17212b"}">${r[2]}</div><div class="cl" style="margin-top:6px;background:#0b5cad;color:#fff;border-radius:999px;padding:6px 14px;font-size:20px;font-weight:700">Cómo llegar</div></div></div>`).join("")})();
+const LIS=[...document.querySelectorAll("#lst .li")];
+
+function render(t){
+  // escenas con fundido cruzado de 0,35 s
+  SC.forEach(([id,a,b],i)=>{const fi=i?k(t,a-.35,.35,x=>x):1,fo=i<SC.length-1?1-k(t,b-.35,.35,x=>x):1;$(id).style.opacity=(t>=a-.35&&t<=b)?Math.min(fi,fo):0});
+  // 1
+  [["s1a",.2],["s1b",1.6],["s1c",3.3]].forEach(([id,a])=>{const e=k(t,a,.6,E.back);$(id).style.transform=`translateY(${(1-k(t,a,.5))*80}px) scale(${.6+.4*e})`;$(id).style.opacity=k(t,a,.4)});
+  // 2
+  const n=Math.round(20*k(t,6.9,1.6));$("s2n").textContent=n+" €";$("s2n").style.transform=`scale(${1+.15*Math.sin(cl((t-8.5)/.4)*Math.PI)})`;$("s2b").style.opacity=k(t,8.3,.5);
+  // 3
+  $("logo").style.transform=`scale(${E.back(cl((t-10.4)/.7))}) rotate(${(1-k(t,10.4,.8))*-25}deg)`;$("s3t").style.opacity=k(t,11.2,.5);$("s3t").style.transform=`translateY(${(1-k(t,11.2,.5))*60}px)`;$("s3u").style.transform=`scale(${E.back(cl((t-12.1)/.6))})`;
+  // 4
+  PVS.forEach(p=>{const L=+p.dataset.l,e=k(t,14.6,1.6,E.io);p.style.strokeDasharray=`${L*e} ${L}`;p.style.fillOpacity=k(t,15.6,.8)});
+  PTS.forEach(c=>{const a=15.6+(+c.dataset.o)*3.6,e=k(t,a,.35,E.back);c.setAttribute("r",(7*e).toFixed(2));c.style.opacity=k(t,a,.2)});
+  $("ley").style.opacity=k(t,19,.6);
+  // 5
+  ROWS.forEach((r,i)=>{const a=22+i*.42;r.style.transform=`translateX(${(1-k(t,a,.5))*1100}px)`;r.style.opacity=k(t,a,.3)});
+  ROWS[0].style.boxShadow=t>26.2?`0 0 0 ${6+4*Math.sin((t-26.2)*6)}px #ffc93c`:"";
+  // 6
+  const tp=$("tap1"),tt=cl((t-29)/.6);tp.style.opacity=t>29&&t<29.6?1-tt:0;tp.style.transform=`scale(${.4+tt*1.2})`;
+  $("btnC").style.transform=`scale(${t>29&&t<29.25?.94:1})`;$("selC").style.opacity=k(t,29.3,.4);$("mini").style.opacity=k(t,29.9,.4);
+  const ci=$("circ");if(ci)ci.setAttribute("r",(120*k(t,30,.8,E.back)).toFixed(1));
+  document.querySelectorAll(".mp").forEach((m,i)=>m.setAttribute("r",(14*k(t,30.3+i*.12,.3,E.back)).toFixed(1)));
+  LIS.forEach((l,i)=>{const a=30.6+i*.3;l.style.opacity=k(t,a,.3);l.style.transform=`translateY(${(1-k(t,a,.4))*40}px)`});
+  const cb=document.querySelectorAll(".cl")[1];if(cb)cb.style.transform=`scale(${t>31.8?1+.08*Math.sin((t-31.8)*9):1})`;
+  // 7
+  $("l1").textContent=(35.7*k(t,34.1,1.2)).toFixed(1).replace(".",",");$("l2").textContent=(27.8*k(t,34.1,1.2)).toFixed(1).replace(".",",");$("s7b").style.opacity=k(t,35.6,.5);
+  // 8
+  $("rayo").style.transform=`scale(${E.back(cl((t-37.8)/.6))}) rotate(${Math.sin(t*3)*4}deg)`;$("s8n").textContent=Math.round(792*k(t,38.3,1.3));
+  // 9
+  $("s9a").style.opacity=k(t,41.9,.5);$("s9u").style.transform=`scale(${E.back(cl((t-42.5)/.6))*(t>43.5?1+.04*Math.sin((t-43.5)*5):1)})`;$("s9b").style.opacity=k(t,43.4,.5);
+  // Gotita: entra, bota, parpadea, saluda, señala
+  const ent=k(t,0,.7,E.back),bot=Math.abs(Math.sin(t*3.2))*14,go=$("gotita");
+  const sal=t>45.4?k(t,45.4,.6):0;
+  const KP=[[0,40,1290],[14.2,40,1290],[14.6,40,1350],[21.3,40,1350],[21.8,-420,1350],[27.8,-420,1450],[28.3,-30,1450],[33.4,-30,1450],[33.8,40,1290],[99,40,1290]];
+  let j=0;while(j<KP.length-2&&t>=KP[j+1][0])j++;const q=E.io(cl((t-KP[j][0])/(KP[j+1][0]-KP[j][0]))),x=KP[j][1]+(KP[j+1][1]-KP[j][1])*q,y=KP[j][2]+(KP[j+1][2]-KP[j][2])*q;
+  go.style.transform=`translate(${x+(1-ent)*-500}px,${(y-1290)-bot+sal*700}px) scale(${1+.04*Math.sin(t*6.4)},${1-.04*Math.sin(t*6.4)})`;
+  const bl=(t%3.1)<.12;document.querySelectorAll("#ojos ellipse").forEach(e=>e.setAttribute("ry",bl?3:30));
+  const lk=Math.sin(t*.9)*4;$("pi").setAttribute("cx",133+lk);$("pd").setAttribute("cx",207+lk);
+  const wave=(t<2.6||t>41.4)?Math.sin(t*12)*22:(t>15&&t<21)?-35:0;$("brazoD").setAttribute("transform",`rotate(${wave} 260 250)`);
+  const hablando=BUB.some(b=>t>=b[0]&&t<b[1]);$("boca").setAttribute("d",hablando&&Math.sin(t*22)>0?"M140 298 Q 165 340 190 298 Z":"M140 298 Q 165 326 190 298");
+  // bocadillo
+  const B=BUB.find(b=>t>=b[0]-.05&&t<b[1]+.25),bu=$("bub");
+  if(B){bu.innerHTML=B[2];bu.style.left=B[3]+"px";bu.style.top=B[4]+"px";bu.style.width=B[5]+"px";const e=Math.min(E.back(cl((t-B[0])/.35)),1-k(t,B[1],.25));bu.style.opacity=cl((e-.15)*2.5);bu.style.transform=`scale(${Math.max(.01,e)})`}else bu.style.opacity=0;
+}
+window.render=render;window.DUR=DUR;window.SC=SC;render(0);
+</script></body></html>
