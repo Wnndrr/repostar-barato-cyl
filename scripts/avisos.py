@@ -78,7 +78,19 @@ def bajadas(av, antes, ahora):
     return out
 
 
-def peticion(url, admin, datos=None):
+def peticion(url, admin, datos=None, intentos=4):
+    import time
+    for n in range(intentos):
+        try:
+            return _peticion(url, admin, datos)
+        except Exception as e:  # red o certificado todavía no listos: reintentar
+            if n == intentos - 1:
+                raise
+            print("No se pudo conectar con el servidor de avisos, reintentando…", str(e)[:120])
+            time.sleep(15)
+
+
+def _peticion(url, admin, datos=None):
     req = urllib.request.Request(url, data=json.dumps(datos).encode() if datos is not None else None,
                                  method="POST" if datos is not None else "GET")
     req.add_header("Authorization", "Bearer " + admin)
