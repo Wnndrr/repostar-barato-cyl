@@ -94,6 +94,7 @@ def _peticion(url, admin, datos=None):
     req = urllib.request.Request(url, data=json.dumps(datos).encode() if datos is not None else None,
                                  method="POST" if datos is not None else "GET")
     req.add_header("Authorization", "Bearer " + admin)
+    req.add_header("User-Agent", "RepostarBaratoCyL-AlertaChollo/1.0 (+https://repostarbaratocyl.es)")
     req.add_header("Content-Type", "application/json")
     with urllib.request.urlopen(req, timeout=60) as r:
         return json.loads(r.read())
