@@ -100,7 +100,30 @@ def _peticion(url, admin, datos=None):
         return json.loads(r.read())
 
 
+def prueba():
+    """Manda una notificación de prueba a todos los móviles apuntados (para comprobar que llegan)."""
+    from pywebpush import webpush, WebPushException
+    clave = os.environ["VAPID_PRIVATE_KEY"].strip()
+    servidor = json.loads((RAIZ / "datos" / "avisos.json").read_text(encoding="utf-8"))["url"]
+    cfg = json.loads((RAIZ / "scripts" / "avisos_config.json").read_text(encoding="utf-8"))
+    admin = hashlib.sha256(("repostar-avisos:" + clave).encode()).hexdigest()
+    subs = peticion(servidor + "/admin/lista", admin)
+    ok = 0
+    for s in subs:
+        try:
+            webpush(subscription_info=s["sub"],
+                    data=json.dumps({"title": "🔔 Alerta Chollo funciona", "body": "Este es un aviso de prueba. Te avisaremos cuando baje el precio que sigues.", "url": WEB + "/avisos/"}),
+                    vapid_private_key=clave, vapid_claims={"sub": cfg["contacto"]}, ttl=3600)
+            ok += 1
+        except WebPushException as e:
+            print("No se pudo avisar a un móvil:", getattr(e.response, "status_code", None), str(e)[:200])
+    print(f"Prueba de Alerta Chollo: {ok} de {len(subs)} móviles avisados.")
+    return 0
+
+
 def main():
+    if len(sys.argv) > 1 and sys.argv[1] == "--prueba":
+        return prueba()
     if len(sys.argv) < 3 or not Path(sys.argv[1]).exists():
         print("No hay precios anteriores con los que comparar: no se mandan avisos.")
         return 0
