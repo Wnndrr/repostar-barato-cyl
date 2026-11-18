@@ -113,13 +113,14 @@ def main():
     admin = hashlib.sha256(("repostar-avisos:" + clave).encode()).hexdigest()
 
     antes, ahora = cargar(sys.argv[1]), cargar(sys.argv[2])
-    if antes == ahora:
-        print("Los precios no han cambiado desde la última vez: no se mandan avisos.")
+    subs = peticion(servidor + "/admin/lista", admin)
+    print(f"Alerta Chollo: conectado con el servidor, {len(subs)} móviles con avisos.")
+    if antes == ahora or not subs:
+        print("No hay bajadas que comprobar ahora: no se mandan avisos.")
         return 0
 
     from pywebpush import webpush, WebPushException
 
-    subs = peticion(servidor + "/admin/lista", admin)
     enviados, borrar = 0, []
     for s in subs:
         frases = bajadas(s.get("avisos", []), antes, ahora)
