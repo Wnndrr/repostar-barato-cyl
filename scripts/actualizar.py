@@ -674,6 +674,31 @@ def poner_analytics():
     print(f"Google Analytics en {n} páginas")
 
 
+def generar_avisos(datos, reemplazos, head_extra):
+    """Página «Alerta Chollo»: avisos de bajada de precio en la app."""
+    G = datos["gasolineras"]
+    plantilla = (RAIZ / "plantillas" / "pagina.html").read_text(encoding="utf-8")
+    cuerpo = (RAIZ / "plantillas" / "avisos_cuerpo.html").read_text(encoding="utf-8")
+    cfg = json.loads((RAIZ / "scripts" / "avisos_config.json").read_text(encoding="utf-8"))
+    srv = DATOS / "avisos.json"
+    url = json.loads(srv.read_text(encoding="utf-8")).get("url", "") if srv.exists() else ""
+    lista = [[i, g[0], nombre_pueblo(g[1]), g[2], g[3], g[8], g[9]] for i, g in enumerate(G)]
+    cuerpo = (cuerpo.replace("__AC_DATA__", json.dumps(lista, ensure_ascii=False, separators=(",", ":")))
+              .replace("__AC_URL__", url).replace("__AC_KEY__", cfg["vapid_publica"]))
+    titulo = "Alerta Chollo: te avisamos si baja la gasolina"
+    desc = "Recibe una notificación en el móvil cuando baje el precio del combustible en tu gasolinera, tu provincia o toda Castilla y León."
+    html = plantilla
+    for k, v in {**reemplazos, "__TITULO__": "Alerta Chollo 🔔", "__DESCRIPCION__": esc(desc), "__RUTA__": "avisos/",
+                 "__RAIZ__": "../", "__MIGAS__": '<a href="../">Inicio</a> › Alerta Chollo', "__CUERPO__": cuerpo,
+                 "__ASIDE__": "", "__HEADEXTRA__": head_extra("avisos/", titulo, desc, "../")}.items():
+        html = html.replace(k, v)
+    html = html.replace("<title>Alerta Chollo 🔔 · Repostar Barato CyL</title>", f"<title>{esc(titulo)} · Repostar Barato CyL</title>")
+    d = SALIDA / "avisos"
+    d.mkdir(parents=True, exist_ok=True)
+    (d / "index.html").write_text(html, encoding="utf-8")
+    return "avisos/"
+
+
 def main():
     datos, nuevos = gasolineras()
     ev = puntos_carga()
@@ -694,6 +719,7 @@ def main():
     }
     portada, paginas_art = generar_articulos(datos, reemplazos)
     paginas_pueblo, bloques = generar_pueblos(datos, reemplazos, head_extra)
+    pagina_avisos = generar_avisos(datos, reemplazos, head_extra)
     reemplazos["__CONSEJOS__"] = portada
     reemplazos["__PUEBLOS__"] = bloques
     reemplazos["__SLUGS__"] = j(mapa_slugs(datos["gasolineras"]))
@@ -719,7 +745,7 @@ def main():
             shutil.copy(f, SALIDA / f.name)
 
     legales = sorted(f.name for f in (RAIZ / "paginas").glob("*.html"))
-    paginas = ["", "mapa.html"] + paginas_art + paginas_pueblo + [x for x in legales if x == "contacto.html"]
+    paginas = ["", "mapa.html", pagina_avisos] + paginas_art + paginas_pueblo + [x for x in legales if x == "contacto.html"]
     hoy = time.strftime("%Y-%m-%d")
     (SALIDA / "sitemap.xml").write_text(
         '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'

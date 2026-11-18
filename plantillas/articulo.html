@@ -94,14 +94,19 @@ html{scroll-padding-top:calc(var(--hdr,72px) + 8px)}
 nav.menu a.evlink{color:var(--good);font-weight:600;border:1px solid var(--good);border-radius:999px;padding:4px 12px}
 .tema{background:transparent;border:1px solid var(--line);color:inherit;border-radius:999px;padding:4px 12px;font:600 14px var(--f-body,system-ui);cursor:pointer;white-space:nowrap}
 .tema:hover{border-color:var(--accent)}
+nav.menu a.aclink{color:#fff;background:var(--accent);font-weight:600;border-radius:999px;padding:4px 10px}
+nav.menu a.aclink:hover{color:#fff;filter:brightness(1.1)}
+header.top .acc{display:flex;gap:16px;align-items:center;margin-left:auto;font-weight:500;color:var(--muted);font-size:15px}
+header.top nav.menu{flex-basis:100%}
 </style>
 </head>
 <body>
 <header class="top"><div class="wrap">
   <a class="brand" href="__RAIZ__"><img src="__RAIZ__logo-192.png" width="34" height="34" alt="">Repostar Barato CyL</a>
+  <div class="acc"><button type="button" class="recargar" title="Cargar los precios más recientes">Actualizar</button><button type="button" class="opc" aria-haspopup="true" aria-expanded="false">Ajustes ▾</button></div>
   <nav class="menu" aria-label="Secciones">
-    <a href="__RAIZ__">Inicio</a><a href="__RAIZ__#mapa">Mapa</a><a href="__RAIZ__#provincias">Provincias</a><a href="__RAIZ__#ranking">Todas las gasolineras</a><a href="__RAIZ__#pueblos">Pueblos</a><a href="__RAIZ__#calculadora">Calculadora</a><a href="__RAIZ__consejos/" aria-current="page">Consejos</a><a href="__RAIZ__mapa.html">Mapa satélite</a><a class="evlink" href="__RAIZ__#electrico">⚡ Coche eléctrico</a>
-      <button type="button" class="recargar" title="Cargar los precios más recientes">Actualizar</button><button type="button" class="opc" aria-haspopup="true" aria-expanded="false">Ajustes ▾</button>
+    <a href="__RAIZ__">Inicio</a><a href="__RAIZ__#mapa">Mapa</a><a href="__RAIZ__#provincias">Provincias</a><a href="__RAIZ__#ranking">Gasolineras</a><a href="__RAIZ__#pueblos">Pueblos</a><a href="__RAIZ__#calculadora">Calculadora</a><a href="__RAIZ__consejos/" aria-current="page">Consejos</a><a href="__RAIZ__mapa.html">Mapa satélite</a><a class="evlink" href="__RAIZ__#electrico">⚡ Coche eléctrico</a><a class="aclink" href="__RAIZ__avisos/">🔔 Alerta Chollo</a>
+      
   </nav>
 </div></header>
 

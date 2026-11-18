@@ -225,6 +225,10 @@ html{scroll-padding-top:calc(var(--hdr,72px) + 8px)}
 }
 .tema{background:transparent;border:1px solid var(--line);color:inherit;border-radius:999px;padding:4px 12px;font:600 14px var(--f-body,system-ui);cursor:pointer;white-space:nowrap}
 .tema:hover{border-color:var(--accent)}
+nav.menu a.aclink{color:#fff;background:var(--accent);font-weight:600;border-radius:999px;padding:4px 10px}
+nav.menu a.aclink:hover{color:#fff;filter:brightness(1.1)}
+header.top .acc{display:flex;gap:16px;align-items:center;margin-left:auto;font-weight:500;color:var(--muted);font-size:15px}
+header.top nav.menu{flex-basis:100%}
 </style>
 
 </head>
@@ -232,13 +236,14 @@ html{scroll-padding-top:calc(var(--hdr,72px) + 8px)}
 
 <header class="top"><div class="wrap">
   <a class="brand" href="#inicio"><img src="logo-192.png" width="34" height="34" alt="">Repostar Barato CyL</a>
+  <div class="acc"><button type="button" class="recargar" title="Cargar los precios más recientes">Actualizar</button><button type="button" class="opc" aria-haspopup="true" aria-expanded="false">Ajustes ▾</button></div>
   <nav class="menu" aria-label="Secciones">
-    <a href="#inicio">Inicio</a><a href="#mapa">Mapa</a><a href="#provincias">Provincias</a><a href="#ranking">Todas las gasolineras</a><a href="#pueblos">Pueblos</a><a href="#calculadora">Calculadora</a>
+    <a href="#inicio">Inicio</a><a href="#mapa">Mapa</a><a href="#provincias">Provincias</a><a href="#ranking">Gasolineras</a><a href="#pueblos">Pueblos</a><a href="#calculadora">Calculadora</a>
     <a href="consejos/">Consejos</a>
     <a href="mapa.html">Mapa satélite</a>
     <button class="evlink instalar" id="instalar" type="button" hidden>📲 Instalar app</button>
-    <a class="evlink" href="#electrico">⚡ Coche eléctrico</a>
-      <button type="button" class="recargar" title="Cargar los precios más recientes">Actualizar</button><button type="button" class="opc" aria-haspopup="true" aria-expanded="false">Ajustes ▾</button>
+    <a class="evlink" href="#electrico">⚡ Coche eléctrico</a><a class="aclink" href="avisos/">🔔 Alerta Chollo</a>
+      
   </nav>
 </div></header>
 

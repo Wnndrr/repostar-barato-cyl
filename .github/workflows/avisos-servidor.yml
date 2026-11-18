@@ -1,0 +1,47 @@
+name: Montar el servidor de Alerta Chollo
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "worker/**"
+      - "scripts/desplegar_avisos.py"
+      - ".github/workflows/avisos-servidor.yml"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: avisos-servidor
+  cancel-in-progress: false
+
+jobs:
+  servidor:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Crear o actualizar el servidor en Cloudflare
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          VAPID_PRIVATE_KEY: ${{ secrets.VAPID_PRIVATE_KEY }}
+        run: python scripts/desplegar_avisos.py
+
+      - name: Guardar la dirección del servidor y republicar la web
+        run: |
+          git config user.name "actualizador-precios"
+          git config user.email "actions@users.noreply.github.com"
+          git add datos/avisos.json 2>/dev/null || true
+          git diff --cached --quiet && exit 0
+          git commit -m "Dirección del servidor de Alerta Chollo"
+          git pull --rebase && git push
+          gh workflow run actualizar.yml --ref main
+        env:
+          GH_TOKEN: ${{ github.token }}

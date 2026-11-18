@@ -30,6 +30,9 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Guardar los precios anteriores para comparar
+        run: cp datos/gasolineras.json /tmp/antes.json 2>/dev/null || true
+
       - name: Descargar precios y generar la web
         env:
           URL_WEB: ${{ vars.URL_WEB }}
@@ -44,6 +47,18 @@ jobs:
           git add datos/
           git diff --cached --quiet || git commit -m "Precios actualizados $(date -u +'%Y-%m-%d %H:%M') UTC [skip ci]"
           git push || echo "No se pudieron guardar los datos (no afecta a la web)"
+
+      - name: Alerta Chollo (avisar de bajadas de precio)
+        continue-on-error: true
+        env:
+          VAPID_PRIVATE_KEY: ${{ secrets.VAPID_PRIVATE_KEY }}
+        run: |
+          if [ -n "$VAPID_PRIVATE_KEY" ] && [ -f datos/avisos.json ]; then
+            pip install --quiet pywebpush
+            python scripts/avisos.py /tmp/antes.json datos/gasolineras.json
+          else
+            echo "Alerta Chollo aún no está configurada"
+          fi
 
       - uses: actions/configure-pages@v5
 

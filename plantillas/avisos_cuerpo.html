@@ -1,0 +1,141 @@
+<style>
+.ac-caja{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px;margin:22px 0}
+.ac-web{border:2px solid var(--accent);background:var(--accent-soft)}
+.ac-web strong{font-size:20px}
+.ac-btn{display:inline-block;border:0;background:var(--accent);color:#fff;font:600 17px var(--f-body);padding:12px 22px;border-radius:999px;cursor:pointer;text-decoration:none}
+.ac-btn:hover{filter:brightness(1.1)}
+.ac-btn[disabled]{opacity:.6;cursor:default}
+.ac-sec{background:transparent;color:var(--accent);border:1px solid var(--accent)}
+.ac-campo{display:grid;gap:6px;margin:0 0 16px}
+.ac-campo>span{font-weight:600;font-size:15px}
+.ac-campo select,.ac-campo input{font:16px var(--f-body);padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--fg);width:100%;min-width:0}
+.ac-zonas{display:flex;flex-wrap:wrap;gap:8px}
+.ac-zonas label{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:999px;padding:8px 14px;cursor:pointer;font-size:16px}
+.ac-zonas input{accent-color:var(--accent);width:auto!important;padding:0;margin:0}
+.ac-res{display:grid;gap:6px;max-height:300px;overflow:auto;margin-top:8px}
+.ac-res button{text-align:left;border:1px solid var(--line);background:var(--bg);color:var(--fg);border-radius:10px;padding:10px 12px;font:15px var(--f-body);cursor:pointer}
+.ac-res button[aria-pressed="true"]{border:2px solid var(--accent);background:var(--accent-soft)}
+.ac-res small{display:block;color:var(--muted);font-size:13px}
+.ac-lista{list-style:none;padding:0!important;margin:0;display:grid;gap:8px}
+.ac-lista li{display:flex;align-items:center;justify-content:space-between;gap:12px;border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--bg);max-width:none!important}
+.ac-lista button{border:0;background:transparent;color:#c0392b;font:600 15px var(--f-body);cursor:pointer;white-space:nowrap}
+.ac-msg{font-weight:600;margin:10px 0 0}
+.ac-msg.err{color:#c0392b}.ac-msg.ok{color:var(--good)}
+.anuncio{margin:26px 0;min-height:0}
+.ac-pasos{counter-reset:p;list-style:none;padding:0!important}
+.ac-pasos li{counter-increment:p;position:relative;padding-left:48px;margin:0 0 14px}
+.ac-pasos li::before{content:counter(p);position:absolute;left:0;top:0;width:34px;height:34px;border-radius:50%;background:var(--accent);color:#fff;font-weight:700;display:grid;place-items:center}
+</style>
+
+<div class="ac-caja ac-web" id="acWeb" hidden>
+  <strong>📲 Alerta Chollo solo funciona en la app</strong>
+  <p style="margin:8px 0 14px">Para recibir avisos en el móvil, instala Repostar Barato CyL como app. Es gratis, no ocupa casi nada y no hace falta registrarse. Después, abre la app y vuelve a esta sección desde el menú.</p>
+  <button class="ac-btn" id="acInstalar" type="button" hidden>Instalar la app</button>
+  <p id="acIos" hidden style="margin:10px 0 0">En iPhone o iPad: abre esta página en <strong>Safari</strong>, pulsa el botón <strong>Compartir</strong> (el cuadrado con la flecha) y elige <strong>«Añadir a pantalla de inicio»</strong>.</p>
+  <p id="acAndroid" hidden style="margin:10px 0 0">En Android: abre el menú de Chrome (los tres puntos) y elige <strong>«Instalar aplicación»</strong> o <strong>«Añadir a pantalla de inicio»</strong>.</p>
+</div>
+
+<h2>Cómo funciona</h2>
+<ol class="ac-pasos">
+  <li><strong>Elige el combustible</strong> que te interesa: gasolina 95, diésel, gasolina 98, autogás, AdBlue o gas natural.</li>
+  <li><strong>Elige dónde:</strong> en toda Castilla y León, en una provincia o en una gasolinera concreta.</li>
+  <li><strong>Pulsa «Añadir aviso»</strong> y acepta las notificaciones. Puedes añadir todos los avisos que quieras, por ejemplo la gasolina 95 de una gasolinera y el diésel de otra.</li>
+  <li>Dos veces al día, cuando se actualizan los precios oficiales, <strong>te llega una notificación si ha bajado</strong>. Si eliges una provincia o toda la comunidad, te avisamos cuando baja el precio más barato de esa zona.</li>
+</ol>
+
+<div class="anuncio" data-hueco="alerta-1" aria-hidden="true"></div>
+
+<section class="ac-caja" id="acApp" hidden>
+  <h2 style="margin-top:0">Crea un aviso</h2>
+  <label class="ac-campo"><span>Combustible</span>
+    <select id="acComb"><option value="5">Gasolina 95</option><option value="6">Diésel</option><option value="7">Gasolina 98</option><option value="10">Autogás (GLP)</option><option value="11">AdBlue</option><option value="12">Gas natural</option></select>
+  </label>
+  <div class="ac-campo"><span>¿Dónde?</span>
+    <div class="ac-zonas" role="radiogroup">
+      <label><input type="radio" name="acZona" value="cyl" checked> Toda Castilla y León</label>
+      <label><input type="radio" name="acZona" value="prov"> Una provincia</label>
+      <label><input type="radio" name="acZona" value="gas"> Una gasolinera</label>
+    </div>
+  </div>
+  <label class="ac-campo" id="acProvW" hidden><span>Provincia</span>
+    <select id="acProv"><option value="0">Ávila</option><option value="1">Burgos</option><option value="2">León</option><option value="3">Palencia</option><option value="4">Salamanca</option><option value="5">Segovia</option><option value="6">Soria</option><option value="7">Valladolid</option><option value="8">Zamora</option></select>
+  </label>
+  <div class="ac-campo" id="acGasW" hidden><span>Gasolinera</span>
+    <input id="acBusca" type="search" placeholder="Escribe el pueblo, la marca o la calle…" autocomplete="off">
+    <div class="ac-res" id="acRes"></div>
+  </div>
+  <button class="ac-btn" id="acAdd" type="button">🔔 Añadir aviso</button>
+  <p class="ac-msg" id="acMsg" role="status"></p>
+
+  <h3>Tus avisos</h3>
+  <ul class="ac-lista" id="acLista"></ul>
+  <p id="acVacio" style="color:var(--muted)">Todavía no tienes avisos.</p>
+  <button class="ac-btn ac-sec" id="acQuitarTodo" type="button" hidden>Desactivar todos los avisos</button>
+</section>
+
+<div class="anuncio" data-hueco="alerta-2" aria-hidden="true"></div>
+
+<h2>Preguntas frecuentes</h2>
+<h3>¿Cuesta algo?</h3>
+<p>No. Alerta Chollo es gratis, igual que el resto de la web.</p>
+<h3>¿Qué datos guardáis?</h3>
+<p>Solo los avisos que eliges y la dirección técnica que tu móvil nos da para poder mandarte notificaciones. No pedimos tu nombre, tu correo ni tu ubicación. Si desactivas los avisos, se borran. Más información en la <a href="../privacidad.html">política de privacidad</a>.</p>
+<h3>¿Cada cuánto llegan los avisos?</h3>
+<p>Los precios oficiales se actualizan dos veces al día, por la mañana y por la tarde. Solo te avisamos si alguno de los precios que sigues ha bajado desde la última actualización.</p>
+<h3>No me llegan las notificaciones</h3>
+<p>Comprueba que usas la app instalada y que tienes permitidas las notificaciones de Repostar Barato CyL en los ajustes del móvil. En iPhone necesitas iOS 16.4 o posterior.</p>
+
+<script>
+(()=>{
+const CFG={url:"__AC_URL__",key:"__AC_KEY__"},G=__AC_DATA__,PV=["Ávila","Burgos","León","Palencia","Salamanca","Segovia","Soria","Valladolid","Zamora"];
+const FN={5:"Gasolina 95",6:"Diésel",7:"Gasolina 98",10:"Autogás (GLP)",11:"AdBlue",12:"Gas natural"};
+const $=id=>document.getElementById(id),esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const norm=s=>s.normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim();
+const app=matchMedia("(display-mode: standalone)").matches||matchMedia("(display-mode: fullscreen)").matches||navigator.standalone===true||/[?&]probar=1/.test(location.search);
+const ios=/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
+$("acWeb").hidden=app;$("acApp").hidden=!app;
+if(!app){$(ios?"acIos":"acAndroid").hidden=false;let ev=null;
+  addEventListener("beforeinstallprompt",e=>{e.preventDefault();ev=e;$("acInstalar").hidden=false;$("acAndroid").hidden=true});
+  $("acInstalar").onclick=async()=>{if(!ev)return;ev.prompt();await ev.userChoice;ev=null;$("acInstalar").hidden=true};
+  addEventListener("appinstalled",()=>{$("acWeb").querySelector("p").textContent="¡App instalada! Ábrela desde la pantalla de inicio y entra en Alerta Chollo desde el menú."});
+  return}
+
+const K="alertaChollo";let avisos=[];try{avisos=JSON.parse(localStorage.getItem(K)||"[]")}catch(_){}
+const guardar=()=>{try{localStorage.setItem(K,JSON.stringify(avisos))}catch(_){}};
+const zona=()=>document.querySelector('input[name="acZona"]:checked').value;
+let elegida=null;
+const msg=(t,c="")=>{$("acMsg").textContent=t;$("acMsg").className="ac-msg "+c};
+function txt(a){const f=FN[a.f];if(a.t==="cyl")return`${f} · la más barata de Castilla y León`;if(a.t==="prov")return`${f} · la más barata de ${PV[a.p]}`;return`${f} · ${a.n} (${a.pu})`}
+function pintar(){$("acLista").innerHTML=avisos.map((a,i)=>`<li><span>🔔 ${esc(txt(a))}</span><button type="button" data-i="${i}">Quitar</button></li>`).join("");
+  $("acVacio").hidden=avisos.length>0;$("acQuitarTodo").hidden=!avisos.length;
+  $("acLista").querySelectorAll("[data-i]").forEach(b=>b.onclick=async()=>{avisos.splice(+b.dataset.i,1);guardar();pintar();await enviar().catch(e=>msg(e.message||e,"err"))})}
+document.querySelectorAll('input[name="acZona"]').forEach(r=>r.onchange=()=>{$("acProvW").hidden=zona()!=="prov";$("acGasW").hidden=zona()!=="gas";if(zona()==="gas")$("acBusca").focus()});
+function lista(){const q=norm($("acBusca").value);if(q.length<2){$("acRes").innerHTML="";return}const ws=q.split(" ");
+  const xs=G.filter(g=>{const t=" "+norm(g[2]+" "+g[3]+" "+g[4]+" "+PV[g[1]])+" ";return ws.every(w=>t.includes(w))}).slice(0,40);
+  $("acRes").innerHTML=xs.length?xs.map(g=>`<button type="button" data-i="${g[0]}" aria-pressed="${elegida&&elegida[0]===g[0]}"><strong>${esc(g[3])}</strong><small>${esc(g[4])} · ${esc(g[2])} (${PV[g[1]]})</small></button>`).join(""):'<p style="color:var(--muted);margin:4px 0">No hay gasolineras que coincidan.</p>';
+  $("acRes").querySelectorAll("[data-i]").forEach(b=>b.onclick=()=>{elegida=G.find(g=>g[0]===+b.dataset.i);lista()})}
+$("acBusca").oninput=()=>{elegida=null;lista()};
+const u8=b=>{const p="=".repeat((4-b.length%4)%4),s=atob((b+p).replace(/-/g,"+").replace(/_/g,"/"));return Uint8Array.from(s,c=>c.charCodeAt(0))};
+async function suscripcion(){
+  if(!CFG.url)throw new Error("Alerta Chollo estará disponible muy pronto. ¡Vuelve en unos días!");
+  if(!("serviceWorker" in navigator)||!("PushManager" in window)||!("Notification" in window))throw new Error("Este móvil o navegador no permite notificaciones.");
+  const p=await Notification.requestPermission();if(p!=="granted")throw new Error("Necesitas permitir las notificaciones para recibir los avisos. Puedes activarlas en los ajustes del móvil.");
+  const reg=await navigator.serviceWorker.ready;return await reg.pushManager.getSubscription()||await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:u8(CFG.key)})}
+async function enviar(){const sub=await suscripcion();
+  const r=await fetch(CFG.url+"/alta",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({sub:sub.toJSON(),avisos:avisos.map(a=>a.t==="gas"?{f:a.f,t:"gas",la:a.la,lo:a.lo,n:a.n}:a.t==="prov"?{f:a.f,t:"prov",p:a.p}:{f:a.f,t:"cyl"})})});
+  if(!r.ok)throw new Error("No se ha podido guardar el aviso. Inténtalo de nuevo en un rato.")}
+$("acAdd").onclick=async()=>{const f=+$("acComb").value,t=zona();let a;
+  if(t==="cyl")a={f,t};else if(t==="prov")a={f,t,p:+$("acProv").value};
+  else{if(!elegida){msg("Busca y toca la gasolinera que quieras.","err");return}a={f,t,la:elegida[5],lo:elegida[6],n:elegida[3],pu:elegida[2]}}
+  if(avisos.some(x=>txt(x)===txt(a))){msg("Ya tienes ese aviso.","err");return}
+  if(avisos.length>=30){msg("Puedes tener hasta 30 avisos.","err");return}
+  $("acAdd").disabled=true;msg("Guardando…");avisos.push(a);
+  try{await enviar();guardar();pintar();msg("¡Listo! Te avisaremos cuando baje: "+txt(a),"ok")}
+  catch(e){avisos.pop();msg(e.message||String(e),"err")}finally{$("acAdd").disabled=false}};
+$("acQuitarTodo").onclick=async()=>{avisos=[];guardar();pintar();
+  try{const reg=await navigator.serviceWorker.ready,sub=await reg.pushManager.getSubscription();
+    if(sub){if(CFG.url)await fetch(CFG.url+"/baja",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({endpoint:sub.endpoint})});await sub.unsubscribe()}
+    msg("Avisos desactivados.","ok")}catch(_){msg("Avisos desactivados en este móvil.","ok")}};
+pintar();
+})();
+</script>
