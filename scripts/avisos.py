@@ -61,22 +61,33 @@ def minimo(lista, f, p=None):
 
 
 def bajadas(av, antes, ahora):
-    """Devuelve una frase por cada aviso cuyo precio ha bajado."""
+    """Devuelve (frase, sentido) por cada aviso cuyo precio ha cambiado en el sentido elegido.
+    sentido: "b" baja, "s" sube; el aviso puede pedir "b", "s" o "a" (ambas)."""
     out = []
+    quiere = lambda a, x: a.get("d", "b") in (x, "a")
     for a in av:
         f = a["f"]
         if a["t"] == "gas":
             s0, s1 = buscar(antes, a), buscar(ahora, a)
-            if s0 and s1 and s0[f] and s1[f] and s1[f] < s0[f]:
-                out.append(f"{s1[2]} ({pueblo(s1[1])}): {COMB[f]} a {euros(s1[f], f)}, {(s0[f] - s1[f]) / 10:.1f} cts menos".replace(".", ","))
+            if not (s0 and s1 and s0[f] and s1[f]) or s1[f] == s0[f]:
+                continue
+            sent = "b" if s1[f] < s0[f] else "s"
+            if quiere(a, sent):
+                dif = abs(s0[f] - s1[f]) / 10
+                cambio = "baja" if sent == "b" else "sube"
+                signo = "-" if sent == "b" else "+"
+                out.append((f"{s1[2]} ({pueblo(s1[1])}): {COMB[f]} {cambio} a {euros(s1[f], f)} ({signo}{dif:.1f} cts)".replace(".", ","), sent))
         else:
             p = a.get("p") if a["t"] == "prov" else None
             zona = PROV[p] if p is not None else "Castilla y León"
             m0, m1 = minimo(antes, f, p), minimo(ahora, f, p)
-            if m0 and m1 and m1[f] < m0[f]:
-                out.append(f"La {COMB[f]} más barata de {zona} baja a {euros(m1[f], f)} en {m1[2]} ({pueblo(m1[1])})")
+            if not (m0 and m1) or m1[f] == m0[f]:
+                continue
+            sent = "b" if m1[f] < m0[f] else "s"
+            if quiere(a, sent):
+                out.append((f"La {COMB[f]} más barata de {zona} {'baja' if sent == 'b' else 'sube'} a {euros(m1[f], f)} "
+                            f"en {m1[2]} ({pueblo(m1[1])})", sent))
     return out
-
 
 def peticion(url, admin, datos=None, intentos=4):
     import time
@@ -147,10 +158,18 @@ def main():
 
     enviados, borrar = 0, []
     for s in subs:
-        frases = bajadas(s.get("avisos", []), antes, ahora)
-        if not frases:
+        cambios = bajadas(s.get("avisos", []), antes, ahora)
+        if not cambios:
             continue
-        titulo = "¡Baja el precio!" if len(frases) == 1 else f"¡Bajan {len(frases)} precios que sigues!"
+        sentidos = {x[1] for x in cambios}
+        n = len(cambios)
+        if sentidos == {"b"}:
+            titulo = "¡Baja el precio!" if n == 1 else f"¡Bajan {n} precios que sigues!"
+        elif sentidos == {"s"}:
+            titulo = "Sube el precio" if n == 1 else f"Suben {n} precios que sigues"
+        else:
+            titulo = f"Cambian {n} precios que sigues"
+        frases = [x[0] for x in cambios]
         cuerpo = "\n".join(frases[:4]) + ("\n…y más en la web" if len(frases) > 4 else "")
         try:
             webpush(subscription_info=s["sub"],

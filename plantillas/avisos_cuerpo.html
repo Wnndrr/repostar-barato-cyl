@@ -38,9 +38,10 @@
 <h2>Cómo funciona</h2>
 <ol class="ac-pasos">
   <li><strong>Elige el combustible</strong> que te interesa: gasolina 95, diésel, gasolina 98, autogás, AdBlue o gas natural.</li>
+  <li><strong>Elige cuándo avisarte:</strong> cuando el precio baje, cuando suba o en los dos casos.</li>
   <li><strong>Elige dónde:</strong> en toda Castilla y León, en una provincia o en una gasolinera concreta.</li>
-  <li><strong>Pulsa «Añadir aviso»</strong> y acepta las notificaciones. Puedes añadir todos los avisos que quieras, por ejemplo la gasolina 95 de una gasolinera y el diésel de otra.</li>
-  <li>Dos veces al día, cuando se actualizan los precios oficiales, <strong>te llega una notificación si ha bajado</strong>. Si eliges una provincia o toda la comunidad, te avisamos cuando baja el precio más barato de esa zona.</li>
+  <li><strong>Pulsa «Añadir aviso»</strong> y acepta las notificaciones. Puedes añadir todos los avisos que quieras, por ejemplo que te avise cuando baje la gasolina 95 de una gasolinera y cuando suba el diésel de otra.</li>
+  <li>Dos veces al día, cuando se actualizan los precios oficiales, <strong>te llega una notificación si ha cambiado como elegiste</strong>. Si eliges una provincia o toda la comunidad, te avisamos cuando cambia el precio más barato de esa zona.</li>
 </ol>
 
 <div class="anuncio" data-hueco="alerta-1" aria-hidden="true"></div>
@@ -49,6 +50,9 @@
   <h2 style="margin-top:0">Crea un aviso</h2>
   <label class="ac-campo"><span>Combustible</span>
     <select id="acComb"><option value="5">Gasolina 95</option><option value="6">Diésel</option><option value="7">Gasolina 98</option><option value="10">Autogás (GLP)</option><option value="11">AdBlue</option><option value="12">Gas natural</option></select>
+  </label>
+  <label class="ac-campo"><span>Avisarme cuando el precio…</span>
+    <select id="acDir"><option value="b">Baje</option><option value="s">Suba</option><option value="a">Baje o suba</option></select>
   </label>
   <div class="ac-campo"><span>¿Dónde?</span>
     <div class="ac-zonas" role="radiogroup">
@@ -81,7 +85,7 @@
 <h3>¿Qué datos guardáis?</h3>
 <p>Solo los avisos que eliges y la dirección técnica que tu móvil nos da para poder mandarte notificaciones. No pedimos tu nombre, tu correo ni tu ubicación. Si desactivas los avisos, se borran. Más información en la <a href="../privacidad.html">política de privacidad</a>.</p>
 <h3>¿Cada cuánto llegan los avisos?</h3>
-<p>Los precios oficiales se actualizan dos veces al día, por la mañana y por la tarde. Solo te avisamos si alguno de los precios que sigues ha bajado desde la última actualización.</p>
+<p>Los precios oficiales se actualizan dos veces al día, por la mañana y por la tarde. Solo te avisamos si alguno de los precios que sigues ha bajado o subido (según lo que elegiste) desde la última actualización.</p>
 <h3>No me llegan las notificaciones</h3>
 <p>Comprueba que usas la app instalada y que tienes permitidas las notificaciones de Repostar Barato CyL en los ajustes del móvil. En iPhone necesitas iOS 16.4 o posterior.</p>
 
@@ -105,7 +109,8 @@ const guardar=()=>{try{localStorage.setItem(K,JSON.stringify(avisos))}catch(_){}
 const zona=()=>document.querySelector('input[name="acZona"]:checked').value;
 let elegida=null;
 const msg=(t,c="")=>{$("acMsg").textContent=t;$("acMsg").className="ac-msg "+c};
-function txt(a){const f=FN[a.f];if(a.t==="cyl")return`${f} · la más barata de Castilla y León`;if(a.t==="prov")return`${f} · la más barata de ${PV[a.p]}`;return`${f} · ${a.n} (${a.pu})`}
+const DIR={b:"cuando baje",s:"cuando suba",a:"cuando baje o suba"};
+function txt(a){const f=FN[a.f],d=" · "+DIR[a.d||"b"];if(a.t==="cyl")return`${f} · la más barata de Castilla y León${d}`;if(a.t==="prov")return`${f} · la más barata de ${PV[a.p]}${d}`;return`${f} · ${a.n} (${a.pu})${d}`}
 function pintar(){$("acLista").innerHTML=avisos.map((a,i)=>`<li><span>🔔 ${esc(txt(a))}</span><button type="button" data-i="${i}">Quitar</button></li>`).join("");
   $("acVacio").hidden=avisos.length>0;$("acQuitarTodo").hidden=!avisos.length;
   $("acLista").querySelectorAll("[data-i]").forEach(b=>b.onclick=async()=>{avisos.splice(+b.dataset.i,1);guardar();pintar();await enviar().catch(e=>msg(e.message||e,"err"))})}
@@ -122,15 +127,15 @@ async function suscripcion(){
   const p=await Notification.requestPermission();if(p!=="granted")throw new Error("Necesitas permitir las notificaciones para recibir los avisos. Puedes activarlas en los ajustes del móvil.");
   const reg=await navigator.serviceWorker.ready;return await reg.pushManager.getSubscription()||await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:u8(CFG.key)})}
 async function enviar(){const sub=await suscripcion();
-  const r=await fetch(CFG.url+"/alta",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({sub:sub.toJSON(),avisos:avisos.map(a=>a.t==="gas"?{f:a.f,t:"gas",la:a.la,lo:a.lo,n:a.n}:a.t==="prov"?{f:a.f,t:"prov",p:a.p}:{f:a.f,t:"cyl"})})});
+  const r=await fetch(CFG.url+"/alta",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({sub:sub.toJSON(),avisos:avisos.map(a=>{const d=a.d||"b";return a.t==="gas"?{f:a.f,t:"gas",la:a.la,lo:a.lo,n:a.n,d}:a.t==="prov"?{f:a.f,t:"prov",p:a.p,d}:{f:a.f,t:"cyl",d}})})});
   if(!r.ok)throw new Error("No se ha podido guardar el aviso. Inténtalo de nuevo en un rato.")}
-$("acAdd").onclick=async()=>{const f=+$("acComb").value,t=zona();let a;
-  if(t==="cyl")a={f,t};else if(t==="prov")a={f,t,p:+$("acProv").value};
-  else{if(!elegida){msg("Busca y toca la gasolinera que quieras.","err");return}a={f,t,la:elegida[5],lo:elegida[6],n:elegida[3],pu:elegida[2]}}
+$("acAdd").onclick=async()=>{const f=+$("acComb").value,t=zona(),d=$("acDir").value;let a;
+  if(t==="cyl")a={f,t,d};else if(t==="prov")a={f,t,p:+$("acProv").value,d};
+  else{if(!elegida){msg("Busca y toca la gasolinera que quieras.","err");return}a={f,t,la:elegida[5],lo:elegida[6],n:elegida[3],pu:elegida[2],d}}
   if(avisos.some(x=>txt(x)===txt(a))){msg("Ya tienes ese aviso.","err");return}
   if(avisos.length>=30){msg("Puedes tener hasta 30 avisos.","err");return}
   $("acAdd").disabled=true;msg("Guardando…");avisos.push(a);
-  try{await enviar();guardar();pintar();msg("¡Listo! Te avisaremos cuando baje: "+txt(a),"ok")}
+  try{await enviar();guardar();pintar();msg("¡Listo! Te avisaremos: "+txt(a),"ok")}
   catch(e){avisos.pop();msg(e.message||String(e),"err")}finally{$("acAdd").disabled=false}};
 $("acQuitarTodo").onclick=async()=>{avisos=[];guardar();pintar();
   try{const reg=await navigator.serviceWorker.ready,sub=await reg.pushManager.getSubscription();

@@ -26,10 +26,11 @@ function avisosValidos(a) {
   const out = [];
   for (const x of a) {
     if (!x || ![5, 6, 7, 10, 11, 12].includes(x.f)) return null;
-    if (x.t === "cyl") out.push({ f: x.f, t: "cyl" });
-    else if (x.t === "prov" && Number.isInteger(x.p) && x.p >= 0 && x.p <= 8) out.push({ f: x.f, t: "prov", p: x.p });
+    const d = ["b", "s", "a"].includes(x.d) ? x.d : "b"; // b = baja, s = sube, a = ambas
+    if (x.t === "cyl") out.push({ f: x.f, t: "cyl", d });
+    else if (x.t === "prov" && Number.isInteger(x.p) && x.p >= 0 && x.p <= 8) out.push({ f: x.f, t: "prov", p: x.p, d });
     else if (x.t === "gas" && typeof x.la === "number" && typeof x.lo === "number" && typeof x.n === "string")
-      out.push({ f: x.f, t: "gas", la: x.la, lo: x.lo, n: x.n.slice(0, 80) });
+      out.push({ f: x.f, t: "gas", la: x.la, lo: x.lo, n: x.n.slice(0, 80), d });
     else return null;
   }
   return out;
