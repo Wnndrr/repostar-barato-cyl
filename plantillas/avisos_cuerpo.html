@@ -71,9 +71,6 @@
   <ul class="ac-lista" id="acLista"></ul>
   <p id="acVacio" style="color:var(--muted)">Todavía no tienes avisos.</p>
   <button class="ac-btn ac-sec" id="acQuitarTodo" type="button" hidden>Desactivar todos los avisos</button>
-  <p style="margin:18px 0 6px;color:var(--muted);font-size:15px">¿No te llegan los avisos? Comprueba si tu móvil muestra las notificaciones de la app:</p>
-  <button class="ac-btn ac-sec" id="acProbar" type="button">🔔 Probar notificación en este móvil</button>
-  <p class="ac-msg" id="acProbarMsg" role="status"></p>
 </section>
 
 <div class="anuncio" data-hueco="alerta-2" aria-hidden="true"></div>
@@ -139,14 +136,6 @@ $("acQuitarTodo").onclick=async()=>{avisos=[];guardar();pintar();
   try{const reg=await navigator.serviceWorker.ready,sub=await reg.pushManager.getSubscription();
     if(sub){if(CFG.url)await fetch(CFG.url+"/baja",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({endpoint:sub.endpoint})});await sub.unsubscribe()}
     msg("Avisos desactivados.","ok")}catch(_){msg("Avisos desactivados en este móvil.","ok")}};
-$("acProbar").onclick=async()=>{const m=$("acProbarMsg");m.className="ac-msg";
-  try{if(!("Notification" in window))throw new Error("Este navegador no permite notificaciones.");
-    const p=await Notification.requestPermission();if(p!=="granted")throw new Error("Las notificaciones están bloqueadas para esta app. Actívalas en los ajustes del móvil.");
-    const reg=await navigator.serviceWorker.ready;
-    await reg.showNotification("🔔 Prueba de Alerta Chollo",{body:"Si ves esto, tu móvil muestra bien las notificaciones de la app.",icon:"/logo-192.png",badge:"/logo-192.png",tag:"alerta-prueba"});
-    const sub=await reg.pushManager.getSubscription();
-    m.className="ac-msg ok";m.textContent="Notificación enviada. Si no la ves arriba en la pantalla, tu móvil la está bloqueando."+(sub?"":" (Además, este móvil no tiene avisos activos: crea uno.)")+" Versión de la app: "+(navigator.serviceWorker.controller?"ok":"sin activar")}
-  catch(e){m.className="ac-msg err";m.textContent=e.message||String(e)}};
 pintar();
 })();
 </script>
