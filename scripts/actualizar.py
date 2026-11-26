@@ -555,7 +555,7 @@ def generar_pueblos(datos, reemplazos, head_extra):
                           f'{round(km(p["centro"], q["centro"]))} km, la gasolina 95 está desde {eur(pv)}.')
         cuerpo = "<p>" + " ".join(frases) + "</p>\n" + tabla_gasolineras(gs) + tabla_otros(gs)
         cuerpo += ('<p>Toca la dirección de cada gasolinera para abrir la ruta en Google Maps. '
-                   'Los precios se actualizan dos veces al día con los datos del Ministerio para la Transición Ecológica.</p>')
+                   'Los precios se actualizan varias veces al día con los datos del Ministerio para la Transición Ecológica.</p>')
         lis = "".join(
             f'<li><a href="../{q["slug"]}/">{esc(q["nombre"])}</a><small>{round(km(p["centro"], q["centro"]))} km</small></li>'
             for q in cercanos)

@@ -5,7 +5,7 @@ Web con los precios de la gasolina y el diésel en las gasolineras de Castilla y
 ## Cómo funciona
 
 - `scripts/actualizar.py` descarga los precios del Ministerio (datos abiertos) y genera la web en la carpeta `sitio/`.
-- `.github/workflows/actualizar.yml` lo ejecuta dos veces al día y publica la web en GitHub Pages.
+- `.github/workflows/actualizar.yml` lo ejecuta varias veces al día y publica la web en GitHub Pages.
 - Si el Ministerio no responde, la web se genera con los últimos precios guardados en `datos/`.
 
 ## Archivos que puedes editar

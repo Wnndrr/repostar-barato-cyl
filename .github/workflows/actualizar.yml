@@ -2,8 +2,9 @@ name: Actualizar precios y publicar la web
 
 on:
   schedule:
-    # Hora UTC: 05:30 y 13:30 (06:30 y 14:30 en invierno en España, una hora más en verano)
-    - cron: "30 5,13 * * *"
+    # Cuatro veces al día (hora UTC; en España, +1 en invierno y +2 en verano).
+    # Minuto 17 para evitar las horas en punto, cuando GitHub retrasa o se salta ejecuciones.
+    - cron: "17 4,9,14,19 * * *"
   push:
     branches: [main]
   workflow_dispatch: {}
@@ -67,4 +68,22 @@ jobs:
           path: sitio
 
       - id: despliegue
+        continue-on-error: true
+        uses: actions/deploy-pages@v4
+
+      - name: Esperar antes de reintentar la publicación
+        if: steps.despliegue.outcome == 'failure'
+        run: sleep 60
+
+      - id: despliegue2
+        if: steps.despliegue.outcome == 'failure'
+        continue-on-error: true
+        uses: actions/deploy-pages@v4
+
+      - name: Último intento de publicación
+        if: steps.despliegue.outcome == 'failure' && steps.despliegue2.outcome == 'failure'
+        run: sleep 120
+
+      - id: despliegue3
+        if: steps.despliegue.outcome == 'failure' && steps.despliegue2.outcome == 'failure'
         uses: actions/deploy-pages@v4
