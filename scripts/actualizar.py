@@ -582,6 +582,41 @@ def generar_pueblos(datos, reemplazos, head_extra):
         pagina(ruta, "../../", titulo, desc, migas, cuerpo, aside, ld)
         rutas.append(ruta)
 
+    # Pueblos que tuvieron gasolinera con precio y hoy no: su página sigue existiendo (sin 404)
+    f_conocidos = DATOS / "pueblos_conocidos.json"
+    try:
+        conocidos = json.loads(f_conocidos.read_text(encoding="utf-8"))
+    except (FileNotFoundError, ValueError):
+        conocidos = {}
+    for q in pueblos:
+        conocidos[q["slug"]] = {"nombre": q["nombre"], "prov": q["prov"], "centro": list(q["centro"])}
+    for sl in ("fresno-de-la-vega", "los-rabanos", "villaflores"):  # desaparecieron antes de existir esta lista
+        conocidos.setdefault(sl, None)
+    actuales = {q["slug"] for q in pueblos}
+    for sl, info in sorted(conocidos.items()):
+        if sl in actuales:
+            continue
+        if not info:
+            ruta = f"gasolineras/{sl}/"
+            pagina(ruta, "../../", "Gasolineras en Castilla y León", "Precios de las gasolineras de Castilla y León.",
+                   '<a href="../../">Inicio</a> › Gasolineras',
+                   '<p>Ahora mismo no hay gasolineras con precios publicados en este municipio. '
+                   '<a href="../../#ranking">Mira todas las gasolineras de Castilla y León →</a></p>', "",
+                   '<meta name="robots" content="noindex,follow">')
+            continue
+        n, np_ = info["nombre"], NOMBRES_PROV[info["prov"]]
+        cerca = sorted(pueblos, key=lambda q: km(info["centro"], q["centro"]))[:8]
+        lis = "".join(f'<li><a href="../{q["slug"]}/">{esc(q["nombre"])}</a><small>{round(km(info["centro"], q["centro"]))} km</small></li>' for q in cerca)
+        cuerpo = (f'<p>Ahora mismo <strong>no hay gasolineras con precios publicados en {esc(n)}</strong>. '
+                  'Puede que la gasolinera esté cerrada temporalmente o que no haya enviado sus precios al Ministerio. '
+                  'En cuanto vuelva a publicarlos, aparecerán aquí.</p>'
+                  f'<p>Mientras tanto, estas son las gasolineras más cercanas:</p><ul class="lista">{lis}</ul>'
+                  f'<p><a href="../../provincia/{slug(np_)}/">Ver todas las gasolineras de la provincia de {np_} →</a></p>')
+        pagina(f"gasolineras/{sl}/", "../../", f"Gasolineras en {n}", f"Gasolineras cerca de {n} ({np_}) con sus precios de hoy.",
+               f'<a href="../../">Inicio</a> › <a href="../../provincia/{slug(np_)}/">{np_}</a> › {esc(n)}', cuerpo, "",
+               '<meta name="robots" content="noindex,follow">')
+    f_conocidos.write_text(json.dumps(conocidos, ensure_ascii=False, sort_keys=True), encoding="utf-8")
+
     # Provincias
     for i, np_ in enumerate(NOMBRES_PROV):
         ps = sorted((p for p in pueblos if p["prov"] == i), key=lambda p: slug(p["nombre"]))
