@@ -36,6 +36,56 @@ function avisosValidos(a) {
   return out;
 }
 
+// ---- ¿Dónde quiero ir?: rutas y búsqueda de lugares con openrouteservice (la clave vive solo aquí) ----
+const ORS = "https://api.heigit.org";
+function simplificar(c, max = 400) {
+  if (c.length <= max) return c;
+  const paso = Math.ceil(c.length / max), out = [];
+  for (let i = 0; i < c.length; i += paso) out.push(c[i]);
+  out.push(c[c.length - 1]);
+  return out;
+}
+async function rutas(req, env, url) {
+  if (!env.ORS) return json(req, { error: "sin_clave" }, 503);
+  const cache = caches.default;
+  const clave = new Request(url.toString(), { method: "GET" });
+  const hit = await cache.match(clave);
+  if (hit) { const r = new Response(hit.body, hit); for (const [k, v] of Object.entries(cors(req))) r.headers.set(k, v); return r; }
+  let datos, ttl;
+  if (url.pathname === "/lugar") {
+    const q = (url.searchParams.get("q") || "").trim().slice(0, 80);
+    if (q.length < 3) return json(req, []);
+    const r = await fetch(`${ORS}/pelias/v1/autocomplete?text=${encodeURIComponent(q)}&boundary.country=ES&size=6&lang=es`, { headers: { Authorization: env.ORS } });
+    if (!r.ok) return json(req, { error: "servicio", status: r.status }, 502);
+    const g = await r.json();
+    datos = (g.features || []).map(f => ({ n: f.properties.label, lon: +f.geometry.coordinates[0].toFixed(5), lat: +f.geometry.coordinates[1].toFixed(5) }));
+    ttl = 604800;
+  } else {
+    const num = v => { const x = (v || "").split(",").map(Number); return x.length === 2 && x.every(Number.isFinite) ? x.map(n => +n.toFixed(4)) : null; };
+    const o = num(url.searchParams.get("o")), d = num(url.searchParams.get("d"));
+    if (!o || !d) return json(req, { error: "coordenadas" }, 400);
+    const pedir = async evitar => {
+      const body = { coordinates: [o, d], instructions: false, extra_info: ["tollways"] };
+      if (evitar) body.options = { avoid_features: ["tollways"] };
+      const r = await fetch(`${ORS}/openrouteservice/v2/directions/driving-car/geojson`, {
+        method: "POST", headers: { Authorization: env.ORS, "Content-Type": "application/json", Accept: "application/geo+json" }, body: JSON.stringify(body) });
+      if (!r.ok) return { error: r.status };
+      const g = await r.json(), f = g.features && g.features[0];
+      if (!f) return { error: "vacía" };
+      const tw = (((f.properties.extras || {}).tollways || {}).summary || []).filter(x => x.value > 0).reduce((a, x) => a + x.distance, 0);
+      return { km: f.properties.summary.distance / 1000, min: f.properties.summary.duration / 60, peajeKm: tw / 1000,
+               c: simplificar(f.geometry.coordinates).map(([x, y]) => [+y.toFixed(5), +x.toFixed(5)]) };
+    };
+    const [con, sin] = await Promise.all([pedir(false), pedir(true)]);
+    if (con.error && sin.error) return json(req, { error: "servicio", status: con.error }, 502);
+    datos = { con: con.error ? null : con, sin: sin.error ? null : sin };
+    ttl = 86400;
+  }
+  const resp = new Response(JSON.stringify(datos), { headers: { "Content-Type": "application/json", "Cache-Control": `public, max-age=${ttl}` } });
+  await cache.put(clave, resp.clone());
+  const r = new Response(resp.body, resp); for (const [k, v] of Object.entries(cors(req))) r.headers.set(k, v); return r;
+}
+
 export default {
   async fetch(req, env) {
     const url = new URL(req.url);
@@ -77,6 +127,7 @@ export default {
         for (const k of (b.claves || []).slice(0, 500)) if (typeof k === "string" && k.startsWith("s:")) await env.KV.delete(k);
         return json(req, { ok: true });
       }
+      if (req.method === "GET" && (url.pathname === "/ruta" || url.pathname === "/lugar")) return await rutas(req, env, url);
       if (url.pathname === "/") return json(req, { servicio: "Alerta Chollo · Repostar Barato CyL", ok: true });
       return json(req, { error: "no encontrado" }, 404);
     } catch (e) {

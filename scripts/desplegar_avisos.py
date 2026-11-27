@@ -18,6 +18,7 @@ NOMBRE = "repostar-avisos"
 TOKEN = os.environ.get("CLOUDFLARE_API_TOKEN", "").strip()
 CUENTA = os.environ.get("CLOUDFLARE_ACCOUNT_ID", "").strip()
 VAPID = os.environ.get("VAPID_PRIVATE_KEY", "").strip()
+ORS_KEY = os.environ.get("ORS_API_KEY", "").strip()
 
 
 def llamar(metodo, ruta, datos=None, cuerpo=None, tipo="application/json"):
@@ -65,8 +66,9 @@ def main():
         "bindings": [
             {"type": "kv_namespace", "name": "KV", "namespace_id": ns},
             {"type": "secret_text", "name": "ADMIN", "text": admin},
-        ],
+        ] + ([{"type": "secret_text", "name": "ORS", "text": ORS_KEY}] if ORS_KEY else []),
     }
+    print("Rutas (openrouteservice):", "con clave" if ORS_KEY else "sin clave todavía, la web usará el modo aproximado")
     limite = "----" + uuid.uuid4().hex
     codigo = (RAIZ / "worker" / "worker.js").read_bytes()
     partes = [

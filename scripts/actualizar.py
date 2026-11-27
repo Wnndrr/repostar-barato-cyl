@@ -747,6 +747,7 @@ def main():
     reemplazos = {
         "__DATA__": j(datos["gasolineras"]),
         "__EV__": j(ev),
+        "__SRV__": (json.loads((DATOS / "avisos.json").read_text(encoding="utf-8")).get("url", "") if (DATOS / "avisos.json").exists() else ""),
         "__PROV__": j(prov),
         "__FECHA__": fecha_bonita(datos["fecha"]),
         "__NTOT__": str(len(datos["gasolineras"])),

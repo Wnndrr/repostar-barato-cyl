@@ -95,6 +95,32 @@ button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible,ca
 .selbl .ir{display:inline-block;margin-top:6px;background:#0b5cad;color:#fff;border-radius:999px;padding:5px 12px;text-decoration:none;font-weight:600}
 .selbl .ir:hover{background:#1470cc}
 .leaflet-control-attribution{font-size:10px}
+.btncerca.btnir{background:#1d8a4e}
+#irDlg{border:0;border-radius:18px;padding:0;width:min(600px,calc(100vw - 20px));max-height:90vh;background:var(--surface);color:var(--fg);box-shadow:0 20px 60px rgba(0,0,0,.4)}
+#irDlg::backdrop{background:rgba(0,0,0,.55)}
+.ird{padding:18px;display:flex;flex-direction:column;gap:10px;max-height:90vh;overflow:auto}
+.irh{display:flex;justify-content:space-between;align-items:center;gap:10px}.irh h3{margin:0;font-family:var(--f-display);font-size:26px}
+.irx{border:0;background:transparent;color:var(--muted);font-size:24px;cursor:pointer}
+.irc{display:grid;gap:6px;margin-bottom:10px}.irc>span{font-weight:600;font-size:15px}
+.irc input,.irc select{font:16px var(--f-body);padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--fg);width:100%;min-width:0}
+.irw{display:flex;gap:8px}.irmi{white-space:nowrap;border:1px solid var(--accent);background:transparent;color:var(--accent);border-radius:10px;padding:0 12px;font:600 15px var(--f-body);cursor:pointer}
+.irs{display:grid;gap:4px}.irs button{text-align:left;border:1px solid var(--line);background:var(--bg);color:var(--fg);border-radius:8px;padding:8px 10px;font:15px var(--f-body);cursor:pointer}
+.irmsg{margin:6px 0 0;font-weight:600}.irmsg.err{color:#c0392b}
+.irrutas{display:grid;gap:8px}
+.irruta{display:flex;justify-content:space-between;align-items:center;gap:10px;border:2px solid var(--line);border-radius:12px;padding:10px 14px;cursor:pointer;background:var(--bg);color:var(--fg);font:15px var(--f-body);text-align:left}
+.irruta[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.irruta b{font-size:17px}.irruta small{display:block;color:var(--muted)}
+.irpeaje{font-size:13px;font-weight:700;border-radius:999px;padding:3px 9px;white-space:nowrap}
+.irpeaje.si{background:#fde8e6;color:#b03a2e}.irpeaje.no{background:#e2f4ea;color:#1d8a4e}
+.irnota{font-size:14px;color:var(--muted);margin:0}
+.ird h4{margin:6px 0 0;font-size:18px}
+.irlista{display:grid;gap:6px}
+.irg{display:grid;grid-template-columns:1fr auto;gap:2px 10px;align-items:center;border:1px solid var(--line);border-radius:10px;padding:9px 12px;background:var(--bg);color:var(--fg);text-align:left;font:15px var(--f-body);cursor:pointer}
+.irg[aria-pressed="true"]{border:2px solid #1d8a4e;background:#e2f4ea;color:#17212b}
+.irg small{color:var(--muted);grid-column:1}.irg .pr{font-family:var(--f-num);font-weight:700;font-size:18px;grid-row:1/3;grid-column:2}
+.irpie{display:flex;gap:10px;flex-wrap:wrap;align-items:center;position:sticky;bottom:-18px;background:var(--surface);padding:10px 0 4px}
+.irgm{text-decoration:none;flex:1;text-align:center}
+.irotra{border:0;background:transparent;color:var(--accent);font:600 15px var(--f-body);cursor:pointer}
 .cerca{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;margin:0 0 12px}
 .btncerca{border:0;background:var(--accent);color:#fff;font:600 16px var(--f-body);padding:10px 18px;border-radius:999px;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.15)}
 .btncerca:hover{filter:brightness(1.1)}
@@ -233,6 +259,34 @@ header.top nav.menu{flex-basis:100%}
 
 </head>
 <body>
+<dialog id="irDlg" aria-labelledby="irT">
+  <div class="ird">
+    <div class="irh"><h3 id="irT">🧭 ¿Dónde quiero ir?</h3><button type="button" class="irx" id="irCerrar" aria-label="Cerrar">✕</button></div>
+    <div id="irForm">
+      <div class="irc"><span>Desde</span>
+        <div class="irw"><input id="irO" autocomplete="off" placeholder="Pueblo, ciudad o dirección" aria-label="Lugar de salida"><button type="button" class="irmi" id="irMi">📍 Mi ubicación</button></div>
+        <div class="irs" id="irOs"></div></div>
+      <div class="irc"><span>Hasta</span><input id="irD" autocomplete="off" placeholder="¿A dónde vas?" aria-label="Destino"><div class="irs" id="irDs"></div></div>
+      <label class="irc" id="irCombW"><span>Combustible</span>
+        <select id="irComb"><option value="5">Gasolina 95</option><option value="6">Diésel</option><option value="7">Gasolina 98</option><option value="10">Autogás (GLP)</option><option value="11">AdBlue</option><option value="12">Gas natural</option></select></label>
+      <label class="irc" id="irEvW" hidden><span>Puntos de carga</span>
+        <select id="irEvT"><option value="r">Solo carga rápida (43 kW o más)</option><option value="t">Todos</option></select></label>
+      <button type="button" class="btncerca" id="irCalc" style="width:100%">Calcular ruta</button>
+      <p class="irmsg" id="irMsg" role="status"></p>
+    </div>
+    <div id="irRes" hidden>
+      <div class="irrutas" id="irRutas"></div>
+      <p class="irnota" id="irNota"></p>
+      <h4 id="irListaT">Gasolineras de paso</h4>
+      <div class="irlista" id="irLista"></div>
+      <div class="irpie">
+        <a class="btncerca irgm" id="irGM" target="_blank" rel="noopener">Ir a Google Maps ↗</a>
+        <button type="button" class="irotra" id="irOtra">Cambiar ruta</button>
+      </div>
+    </div>
+  </div>
+</dialog>
+
 
 <header class="top"><div class="wrap">
   <a class="brand" href="#inicio"><img src="logo-192.png" width="34" height="34" alt="">Repostar Barato CyL</a>
@@ -284,7 +338,7 @@ header.top nav.menu{flex-basis:100%}
   <section id="mapa">
     <h2>Mapa de todas las gasolineras</h2>
     <p class="sub">Las líneas marcan la frontera de cada provincia. Cada marcador es una gasolinera. Verde: de las más baratas de la comunidad. Rojo: de las más caras. Toca un marcador para ver su nombre y su precio. Arrastra el mapa, usa + y − para acercarte y pulsa 🛰️ para verlo en satélite.</p>
-    <div class="cerca"><button class="btncerca" id="cercaGas" type="button">📍 Gasolineras cerca de mí</button>
+    <div class="cerca"><button class="btncerca btnir" type="button" data-ir="gas">🧭 ¿Dónde quiero ir?</button><button class="btncerca" id="cercaGas" type="button">📍 Gasolineras cerca de mí</button>
       <select id="radioSel" class="radiosel" hidden aria-label="Radio de búsqueda en kilómetros"><option value="" disabled selected>¿A cuántos km? ▾</option><option value="2">A menos de 2 km</option><option value="5">A menos de 5 km</option><option value="10">A menos de 10 km</option><option value="20">A menos de 20 km</option><option value="30">A menos de 30 km</option><option value="50">A menos de 50 km</option></select>
       <a class="btn" id="gmaps" hidden target="_blank" rel="noopener" style="text-decoration:none">🗺️ Ver en Google Maps ↗</a>
       <span class="cercamsg" id="cercaGasMsg" role="status"></span></div>
@@ -417,7 +471,7 @@ __CONSEJOS__
         </div>
       </div>
     </div>
-    <div class="cerca"><button class="btncerca" id="cercaEv" type="button">📍 Puntos de carga cerca de mí</button><span class="cercamsg" id="cercaEvMsg" role="status"></span></div>
+    <div class="cerca"><button class="btncerca btnir" type="button" data-ir="ev">🧭 ¿Dónde quiero ir?</button><button class="btncerca" id="cercaEv" type="button">📍 Puntos de carga cerca de mí</button><span class="cercamsg" id="cercaEvMsg" role="status"></span></div>
     <div class="mapbox">
       <div id="evmap" class="lmap" role="region" aria-label="Mapa de puntos de carga de Castilla y León"></div>
       <div class="zoom"><button id="ezin" aria-label="Acercar">+</button><button id="ezout" aria-label="Alejar">−</button><button id="ezre" aria-label="Ver toda la comunidad" style="font-size:13px">⤢</button><button id="ezsat" class="capa" aria-pressed="false" title="Ver satélite">🛰️</button></div>
@@ -526,7 +580,12 @@ function makeMap(el,opts){
     el.classList.toggle("sat",v);if(opts.satBtn){opts.satBtn.setAttribute("aria-pressed",v);opts.satBtn.textContent=v?"🗺️":"🛰️";opts.satBtn.title=v?"Ver callejero":"Ver satélite"}draw()}
   if(opts.satBtn)opts.satBtn.onclick=()=>setSat(!esSat);
   new ResizeObserver(size).observe(el);
-  return{draw,size,refit,zoom(f){f<1?map.zoomIn(1):map.zoomOut(1)},select(id){st.sel=id;draw()}};
+  const rutaLayer=L.layerGroup().addTo(map);
+  function setRuta(c){rutaLayer.clearLayers();if(!c||!c.length)return;L.polyline(c,{color:"#1a73e8",weight:6,opacity:.85,interactive:false}).addTo(rutaLayer);
+    L.circleMarker(c[0],{radius:8,color:"#fff",weight:3,fillColor:"#1d8a4e",fillOpacity:1,interactive:false}).addTo(rutaLayer);
+    L.circleMarker(c[c.length-1],{radius:8,color:"#fff",weight:3,fillColor:"#c0392b",fillOpacity:1,interactive:false}).addTo(rutaLayer);
+    if(ready)map.fitBounds(L.latLngBounds(c),{padding:[20,20]})}
+  return{draw,size,refit,setRuta,zoom(f){f<1?map.zoomIn(1):map.zoomOut(1)},select(id){st.sel=id;draw()}};
 }
 
 /* Etiquetas de provincia: centro de sus gasolineras */
@@ -619,6 +678,67 @@ function evTable(){
   $("etb").innerHTML=xs.length?xs.map(e=>`<tr><td><strong>${esc(e[2])}</strong></td><td>${evCerca?`<span class="dist">📍 ${fkm(DE(e))}</span>`:""}<a class="dir" href="https://www.google.com/maps/dir/?api=1&destination=${e[0]},${e[1]}" target="_blank" rel="noopener">${esc(e[3])} ↗</a></td><td>${esc(e[4]||"Sin indicar")}</td><td class="price">${e[6]?e[6]+" kW":"—"}</td><td>${tags(e)}</td></tr>`).join(""):`<tr><td colspan="5" class="empty">No hay puntos de carga que coincidan.</td></tr>`;
 }
 $("eq").oninput=evTable;
+
+/* ¿Dónde quiero ir? */
+(()=>{
+const SRV="__SRV__",dlg=$("irDlg");let modo="gas",O=null,D=null,R=null,elegida=null,par=null;
+const pueblos=(()=>{const m=new Map();S.forEach(s=>{const k=s[1]+"|"+s[0];const v=m.get(k)||{n:nomP(s[1])+" ("+P[s[0]]+")",la:0,lo:0,c:0};v.la+=s[8];v.lo+=s[9];v.c++;m.set(k,v)});return[...m.values()].map(v=>({n:v.n,lat:v.la/v.c,lon:v.lo/v.c}))})();
+const dur=m=>m<60?`${Math.round(m)} min`:`${Math.floor(m/60)} h ${String(Math.round(m%60)).padStart(2,"0")} min`;
+const fmtKm=k=>Math.round(k).toLocaleString("es-ES")+" km";
+function msg(t,c=""){$("irMsg").textContent=t;$("irMsg").className="irmsg "+c}
+function sugerir(inp,box,set){let t=null;inp.oninput=()=>{set(null);clearTimeout(t);const q=inp.value.trim();if(q.length<2){box.innerHTML="";return}
+  t=setTimeout(async()=>{const nq=norm(q),rk=p=>{const n=norm(p.n.replace(/ \(.*\)$/,""));return n===nq?0:n.startsWith(nq)?1:2};let xs=pueblos.filter(p=>coincide(nq,p.n)).sort((a,b)=>rk(a)-rk(b)||a.n.localeCompare(b.n,"es")).slice(0,5);
+    if(SRV&&q.length>=3){try{const r=await fetch([SRV,"lugar"].join("/")+"?q="+encodeURIComponent(q));if(r.ok){const j=await r.json();if(Array.isArray(j))xs=xs.concat(j.filter(a=>!xs.some(b=>b.n===a.n))).slice(0,8)}}catch(_){}}
+    box.innerHTML=xs.length?xs.map((x,i)=>`<button type="button" data-i="${i}">${esc(x.n)}</button>`).join(""):'<p class="irnota">No encontramos ese lugar. Prueba con el nombre del pueblo o la ciudad.</p>';
+    box.querySelectorAll("button").forEach(b=>b.onclick=()=>{const x=xs[+b.dataset.i];inp.value=x.n;set(x);box.innerHTML=""})},300)}}
+sugerir($("irO"),$("irOs"),x=>O=x);sugerir($("irD"),$("irDs"),x=>D=x);
+$("irMi").onclick=()=>{if(!navigator.geolocation){msg("Tu navegador no permite usar la ubicación.","err");return}msg("Buscando tu ubicación…");
+  navigator.geolocation.getCurrentPosition(p=>{O={n:"Mi ubicación",yo:true,lat:p.coords.latitude,lon:p.coords.longitude};$("irO").value="📍 Mi ubicación";$("irOs").innerHTML="";msg("")},
+    e=>msg(e.code===1?"No has dado permiso para usar tu ubicación. Escribe el lugar de salida.":"No hemos podido saber dónde estás. Escribe el lugar de salida.","err"),{timeout:15000,maximumAge:300000})};
+document.querySelectorAll(".btnir").forEach(b=>b.onclick=()=>{modo=b.dataset.ir;$("irCombW").hidden=modo!=="gas";$("irEvW").hidden=modo!=="ev";
+  $("irListaT").textContent=modo==="gas"?"Gasolineras de paso":"Puntos de carga de paso";$("irComb").value=fuel;
+  $("irForm").hidden=false;$("irRes").hidden=true;msg("");dlg.showModal?dlg.showModal():dlg.setAttribute("open","")});
+$("irCerrar").onclick=()=>dlg.close();dlg.addEventListener("click",e=>{if(e.target===dlg)dlg.close()});
+$("irOtra").onclick=()=>{$("irForm").hidden=false;$("irRes").hidden=true};
+// distancia (km) de un punto a la ruta y kilómetro de la ruta donde queda
+function sobreRuta(c,la,lo){const k=Math.cos(la*Math.PI/180);let best=1e9,pos=0,acc=0;
+  for(let i=1;i<c.length;i++){const ax=c[i-1][1]*k,ay=c[i-1][0],bx=c[i][1]*k,by=c[i][0],px=lo*k,py=la,dx=bx-ax,dy=by-ay,L2=dx*dx+dy*dy;
+    const t=L2?Math.max(0,Math.min(1,((px-ax)*dx+(py-ay)*dy)/L2)):0,d=Math.hypot(px-ax-t*dx,py-ay-t*dy)*111.2,seg=Math.sqrt(L2)*111.2;
+    if(d<best){best=d;pos=acc+t*seg}acc+=seg}return[best,pos]}
+function lista(){const r=R[par];if(!r)return;const c=r.c,ancho=r.aprox?10:3,f=+$("irComb").value;let xs;
+  if(modo==="gas")xs=S.map((s,i)=>({i,la:s[8],lo:s[9],p:s[f]})).filter(x=>x.p);
+  else{const rap=$("irEvT").value==="r";xs=EV.map((e,i)=>({i,la:e[0],lo:e[1]})).filter(x=>!rap||isFast(EV[x.i]))}
+  let geo=0;for(let i=1;i<c.length;i++)geo+=distKm(c[i-1][0],c[i-1][1],c[i][0],c[i][1]);const esc_=geo?r.km/geo:1;
+  xs=xs.map(x=>{const[d,pos]=sobreRuta(c,x.la,x.lo);return{...x,d,pos:Math.min(pos*esc_,r.km)}}).filter(x=>x.d<=ancho);
+  if(modo==="gas")xs.sort((a,b)=>a.p-b.p);else xs.sort((a,b)=>a.pos-b.pos);
+  const tot=xs.length;xs=xs.slice(0,30);
+  if(!xs.length)$("irLista").innerHTML=`<p class="irnota">No hay ${modo==="gas"?"gasolineras con ese combustible":"puntos de carga"} de Castilla y León junto a esta ruta.</p>`;
+  else $("irLista").innerHTML=xs.map(x=>{if(modo==="gas"){const s=S[x.i];return`<button type="button" class="irg" data-i="${x.i}" aria-pressed="${elegida===x.i}"><span><b>${esc(s[2])}</b> · ${esc(nomP(s[1]))}</span><span class="pr">${fmt(s[f])} €</span><small>A los ${fmtKm(x.pos)} de viaje${x.d>0.5?` · a ${x.d.toFixed(1).replace(".",",")} km de la ruta`:""}</small></button>`}
+    const e=EV[x.i];return`<button type="button" class="irg" data-i="${x.i}" aria-pressed="${elegida===x.i}"><span><b>${esc(e[2])}</b>${e[4]?" · "+esc(e[4]):""}</span><span class="pr" style="font-size:15px">${kw(e)||esc(e[5]||"")}</span><small>A los ${fmtKm(x.pos)} de viaje · ${esc(e[3])}</small></button>`}).join("")
+    +(tot>30?`<p class="irnota">Mostramos 30 de ${tot}.</p>`:"")+(modo==="gas"&&xs.length?`<p class="irnota">Ordenadas de la más barata a la más cara.</p>`:"");
+  $("irLista").querySelectorAll(".irg").forEach(b=>b.onclick=()=>{elegida=elegida===+b.dataset.i?null:+b.dataset.i;lista()});
+  enlace()}
+function enlace(){const p=x=>x.lat.toFixed(5)+","+x.lon.toFixed(5);let u="https://www.google.com/maps/dir/?api=1"+(O.yo?"":"&origin="+p(O))+"&destination="+p(D)+"&travelmode=driving";
+  if(elegida!=null)u+="&waypoints="+(modo==="gas"?S[elegida][8]+","+S[elegida][9]:EV[elegida][0]+","+EV[elegida][1]);
+  $("irGM").href=u;$("irGM").textContent=elegida!=null?"Ir a Google Maps con la parada ↗":"Ir a Google Maps ↗";
+  $("irNota").textContent=(R[par]&&R[par].aprox?"Ruta aproximada en línea recta: puede que alguna no quede justo de paso. ":"")+
+    (par==="sin"?"En Google Maps, activa «Evitar peajes» en las opciones de ruta. ":"")+
+    (elegida==null?"Toca una "+(modo==="gas"?"gasolinera":"estación de carga")+" para añadirla como parada.":"")}
+function pintarRutas(){const b=(k,t)=>{const r=R[k];if(!r)return"";const pe=r.aprox?"":(r.peajeKm>1?`<span class="irpeaje si">Con peajes</span>`:`<span class="irpeaje no">Sin peajes</span>`);
+    return`<button type="button" class="irruta" data-k="${k}" aria-pressed="${par===k}"><span><b>${t}</b><small>${fmtKm(r.km)}${r.aprox?" en línea recta":" · "+dur(r.min)}</small></span>${pe}</button>`};
+  const mismo=R.con&&R.sin&&Math.abs(R.con.km-R.sin.km)<1;
+  $("irRutas").innerHTML=R.aprox?b("con","Ruta aproximada"):mismo||!R.sin?b("con","Ruta recomendada"):!R.con?b("sin","Ruta sin peajes"):b("con",R.con.peajeKm>1?"Más rápida (con peajes)":"Más rápida")+b("sin","Sin peajes");
+  $("irRutas").querySelectorAll(".irruta").forEach(x=>x.onclick=()=>{par=x.dataset.k;elegida=null;pintarRutas();lista();(modo==="gas"?gasMap:evMap).setRuta(R[par].c)})}
+$("irComb").onchange=$("irEvT").onchange=()=>{if(!$("irRes").hidden){elegida=null;lista()}};
+$("irCalc").onclick=async()=>{if(!O||!D){msg(!O?"Elige el lugar de salida de la lista o pulsa «Mi ubicación».":"Elige el destino de la lista que aparece al escribir.","err");return}
+  if(modo==="gas"&&+$("irComb").value!==fuel){const v=$("irComb").value;document.querySelector(`[data-f="${v}"]`).click();$("irComb").value=v}
+  msg("Calculando la ruta…");$("irCalc").disabled=true;R=null;
+  try{if(!SRV)throw 0;const r=await fetch([SRV,"ruta"].join("/")+`?o=${O.lon},${O.lat}&d=${D.lon},${D.lat}`);if(!r.ok)throw 0;const j=await r.json();if(!j.con&&!j.sin)throw 0;R=j}
+  catch(_){const n=40,c=[];for(let i=0;i<=n;i++)c.push([O.lat+(D.lat-O.lat)*i/n,O.lon+(D.lon-O.lon)*i/n]);R={aprox:true,con:{aprox:true,km:distKm(O.lat,O.lon,D.lat,D.lon),c}}}
+  finally{$("irCalc").disabled=false}
+  par=R.con?"con":"sin";elegida=null;msg("");$("irForm").hidden=true;$("irRes").hidden=false;pintarRutas();lista();
+  (modo==="gas"?gasMap:evMap).setRuta(R[par].c)};
+})();
 
 /* Cerca de mí: la ubicación se pide solo al pulsar el botón */
 function pedirUbicacion(btn,msg,ok){

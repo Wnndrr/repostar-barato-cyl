@@ -32,6 +32,7 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           VAPID_PRIVATE_KEY: ${{ secrets.VAPID_PRIVATE_KEY }}
+          ORS_API_KEY: ${{ secrets.ORS_API_KEY }}
         run: python scripts/desplegar_avisos.py
 
       - name: Guardar la dirección del servidor y republicar la web
