@@ -121,6 +121,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible,ca
 .irpie{display:flex;gap:10px;flex-wrap:wrap;align-items:center;position:sticky;bottom:-18px;background:var(--surface);padding:10px 0 4px}
 .irgm{text-decoration:none;flex:1;text-align:center}
 .irotra{border:0;background:transparent;color:var(--accent);font:600 15px var(--f-body);cursor:pointer}
+.ordmsg{margin:-6px 0 12px;font-size:15px;color:var(--muted)}.ordmsg:empty{display:none}.ordmsg.err{color:#c0392b}
 .cerca{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;margin:0 0 12px}
 .btncerca{border:0;background:var(--accent);color:#fff;font:600 16px var(--f-body);padding:10px 18px;border-radius:999px;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.15)}
 .btncerca:hover{filter:brightness(1.1)}
@@ -421,7 +422,11 @@ __PUEBLOS__
       <label class="field" for="psel"><span>Provincia</span>
         <select id="psel"></select>
       </label>
+      <label class="field" for="osel"><span>Ordenar por</span>
+        <select id="osel"><option value="precio">Más baratas</option><option value="dist">Más cercanas</option><option value="cuenta">Más a cuenta (precio y distancia)</option></select>
+      </label>
     </div>
+    <p class="ordmsg" id="ordMsg" role="status"></p>
     <div class="tablebox"><table>
       <thead><tr><th>#</th><th>Gasolinera</th><th>Pueblo</th><th>Precio</th><th>Horario</th></tr></thead>
       <tbody id="tb"></tbody>
@@ -524,7 +529,7 @@ const norm=s=>s.normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase().replace(/[
 const coincide=(q,t)=>{t=" "+norm(t)+" ";return q.split(" ").every(w=>t.includes(w))};
 const esc=s=>s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const ruta=s=>`https://www.google.com/maps/dir/?api=1&destination=${s[8]},${s[9]}`;
-let cerca=null,evCerca=null,radio=10;
+let cerca=null,evCerca=null,radio=10,orden="precio",miPos=null;
 const distKm=(a,b,c,d)=>{const R=6371,r=Math.PI/180,x=Math.sin((c-a)*r/2)**2+Math.cos(a*r)*Math.cos(c*r)*Math.sin((d-b)*r/2)**2;return 2*R*Math.asin(Math.sqrt(x))};
 const fkm=k=>k<1?`a ${Math.round(k*1000/50)*50} m`:`a ${k.toFixed(k<10?1:0).replace(".",",")} km`;
 const hor=h=>h.replace(/L-D: 24H/,"24 horas").replace(/L-D: /,"Todos los días ");
@@ -633,19 +638,32 @@ $("psel").onchange=e=>{if(cerca)salirCerca(false);prov=+e.target.value;shown=25;
 function table(){
   const q=norm($("q").value.trim());
   let xs=S.map((s,i)=>i).filter(i=>{const s=S[i];return(cerca||prov<0||s[0]===prov)&&(!q||coincide(q,nomP(s[1])+" "+s[1]+" "+s[2]+" "+s[3]))&&(fuel<10||s[fuel])});
-  const D=i=>cerca?distKm(cerca[0],cerca[1],S[i][8],S[i][9]):0;
-  let best;
-  if(cerca){xs=xs.filter(i=>D(i)<=radio);xs.sort((a,b)=>D(a)-D(b));const cer=xs.map(i=>S[i][fuel]).filter(Boolean);best=cer.length?Math.min(...cer):0}
-  else{xs.sort((a,b)=>(S[a][fuel]||9e9)-(S[b][fuel]||9e9));best=xs.length&&S[xs[0]][fuel]?S[xs[0]][fuel]:0}
+  const pos=cerca||miPos,D=i=>pos?distKm(pos[0],pos[1],S[i][8],S[i][9]):0;
+  const ord=pos?orden:"precio",pr=i=>S[i][fuel]||9e9;
+  // «Más a cuenta»: lo que cuesta llenar 40 litros más el combustible para ir y volver (6,5 l/100 km)
+  const coste=i=>pr(i)*(40+D(i)*2*0.065);
+  if(cerca)xs=xs.filter(i=>D(i)<=radio);
+  if(ord==="dist")xs.sort((a,b)=>D(a)-D(b));else if(ord==="cuenta")xs.sort((a,b)=>coste(a)-coste(b));else xs.sort((a,b)=>pr(a)-pr(b));
+  const cer=xs.map(i=>S[i][fuel]).filter(Boolean),best=cer.length?Math.min(...cer):0;
   $("rtitle").textContent=cerca?"Gasolineras cerca de ti":prov>=0?`Gasolineras de ${P[prov]}`:"Todas las gasolineras de Castilla y León";
-  $("rsub").textContent=cerca?`Precio de ${FN[fuel]} en euros por ${fuel===12?"kilo":"litro"}, de la más cercana a la más lejana. Solo las que están a menos de ${radio} km. Marcamos la más barata de ellas.`:`Precio de ${FN[fuel]} en euros por ${fuel===12?"kilo":"litro"}, de la más barata a la más cara. El color es el mismo que en el mapa.`;
+  const u=fuel===12?"kilo":"litro",zona=cerca?` Solo las que están a menos de ${radio} km.`:"";
+  $("rsub").textContent=ord==="dist"?`Precio de ${FN[fuel]} en euros por ${u}, de la más cercana a la más lejana.${zona} Marcamos la más barata.`
+    :ord==="cuenta"?`Ordenadas por lo que de verdad te cuesta: llenar 40 litros de ${FN[fuel]} más el combustible para ir y volver desde donde estás.${zona}`
+    :`Precio de ${FN[fuel]} en euros por ${u}, de la más barata a la más cara.${zona} El color es el mismo que en el mapa.`;
   const vis=xs.slice(0,shown);
-  $("tb").innerHTML=vis.length?vis.map((i,n)=>{const s=S[i],c=colorOf(i);return`<tr><td class="rank">${n+1}</td><td><strong>${esc(s[2])}</strong>${s[fuel]&&s[fuel]===best?`<span class="chip">${cerca?"Más barata cerca":"Más barata"}</span>`:""}<a class="addr dir" href="${ruta(s)}" target="_blank" rel="noopener">${esc(s[3])} ↗</a><span class="addr hor-m">🕒 ${esc(hor(s[4]))}</span></td><td>${cerca?`<span class="dist">📍 ${fkm(D(i))}</span>`:""}<a class="pueblo" href="${urlPueblo(s)}">${esc(nomP(s[1]))}</a><span class="addr">${P[s[0]]}</span></td><td class="price">${s[fuel]?`<span class="dot" style="background:${c}"></span>${fmt(s[fuel])}${U(fuel)}`:'<span class="addr">No disponible</span>'}</td><td class="hor">${esc(hor(s[4]))}</td></tr>`}).join("")
+  $("tb").innerHTML=vis.length?vis.map((i,n)=>{const s=S[i],c=colorOf(i);return`<tr><td class="rank">${n+1}</td><td><strong>${esc(s[2])}</strong>${s[fuel]&&s[fuel]===best?`<span class="chip">${pos?"Más barata cerca":"Más barata"}</span>`:""}<a class="addr dir" href="${ruta(s)}" target="_blank" rel="noopener">${esc(s[3])} ↗</a><span class="addr hor-m">🕒 ${esc(hor(s[4]))}</span></td><td>${pos?`<span class="dist">📍 ${fkm(D(i))}</span>`:""}<a class="pueblo" href="${urlPueblo(s)}">${esc(nomP(s[1]))}</a><span class="addr">${P[s[0]]}</span></td><td class="price">${s[fuel]?`<span class="dot" style="background:${c}"></span>${fmt(s[fuel])}${U(fuel)}`:'<span class="addr">No disponible</span>'}</td><td class="hor">${esc(hor(s[4]))}</td></tr>`}).join("")
     :`<tr><td colspan="5" class="empty">${cerca&&!$("q").value.trim()?`No hay gasolineras a menos de ${radio} km de ti. Prueba con un radio mayor.`:`No hay gasolineras que coincidan con “${esc($("q").value)}”.`}</td></tr>`;
   $("count").textContent=`Mostrando ${vis.length} de ${xs.length}`;
   $("moreBtn").hidden=vis.length>=xs.length;
 }
 $("moreBtn").onclick=()=>{shown+=25;table()};
+$("osel").onchange=()=>{const v=$("osel").value,m=$("ordMsg");shown=25;m.className="ordmsg";
+  if(v==="precio"||cerca||miPos){orden=v;m.textContent="";table();return}
+  m.textContent="Para ordenar por distancia necesitamos saber dónde estás. Buscando tu ubicación…";
+  if(!navigator.geolocation){m.className="ordmsg err";m.textContent="Tu navegador no permite usar la ubicación.";$("osel").value=orden;return}
+  navigator.geolocation.getCurrentPosition(p=>{miPos=[p.coords.latitude,p.coords.longitude];orden=v;m.textContent="";table()},
+    e=>{$("osel").value=orden;m.className="ordmsg err";m.textContent=e.code===1?"Sin permiso de ubicación no podemos ordenar por distancia. Puedes activarlo en los ajustes del navegador.":"No hemos podido saber dónde estás. Inténtalo de nuevo."},
+    {enableHighAccuracy:false,timeout:15000,maximumAge:300000})};
 $("q").oninput=()=>{shown=25;table()};
 document.querySelectorAll("[data-f]").forEach(b=>b.onclick=()=>{fuel=+b.dataset.f;document.querySelectorAll("[data-f]").forEach(x=>x.setAttribute("aria-pressed",x===b));$("fsel").value=b.dataset.f;render()});
 $("fsel").value=fuel;$("fsel").onchange=e=>document.querySelector(`[data-f="${e.target.value}"]`).click();
@@ -750,7 +768,7 @@ function pedirUbicacion(btn,msg,ok){
 }
 const lejos=u=>distKm(u[0],u[1],41.6,-4.7)>330;
 function salirCerca(redibujar=true){cerca=null;$("cercaGas").classList.remove("on");$("cercaGas").textContent="📍 Gasolineras cerca de mí";$("cercaGasMsg").textContent="";$("radioSel").hidden=true;$("radioSel").value="";$("gmaps").hidden=true;if(redibujar){shown=25;render();gasMap.refit()}}
-function activarCerca(){const u=cerca,z=radio<=2?14:radio<=5?13:radio<=10?12:radio<=20?11:radio<=30?10:9;
+function activarCerca(){miPos=cerca;if(orden==="precio"){orden="dist";$("osel").value="dist"}const u=cerca,z=radio<=2?14:radio<=5?13:radio<=10?12:radio<=20?11:radio<=30?10:9;
   $("cercaGas").classList.add("on");$("cercaGas").textContent="✕ Ver todas las gasolineras";
   $("gmaps").href=`https://www.google.com/maps/search/gasolineras/@${u[0].toFixed(5)},${u[1].toFixed(5)},${z}z`;$("gmaps").hidden=false;
   const n=S.filter(s=>distKm(u[0],u[1],s[8],s[9])<=radio).length;
