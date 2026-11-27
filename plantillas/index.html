@@ -96,6 +96,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible,ca
 .selbl .ir:hover{background:#1470cc}
 .leaflet-control-attribution{font-size:10px}
 .btncerca.btnir{background:#1d8a4e}
+.btncerca.btnquita{background:var(--surface);color:#c0392b;border:1px solid #c0392b;box-shadow:none}
 #irDlg{border:0;border-radius:18px;padding:0;width:min(600px,calc(100vw - 20px));max-height:90vh;background:var(--surface);color:var(--fg);box-shadow:0 20px 60px rgba(0,0,0,.4)}
 #irDlg::backdrop{background:rgba(0,0,0,.55)}
 .ird{padding:18px;display:flex;flex-direction:column;gap:10px;max-height:90vh;overflow:auto}
@@ -339,7 +340,7 @@ header.top nav.menu{flex-basis:100%}
   <section id="mapa">
     <h2>Mapa de todas las gasolineras</h2>
     <p class="sub">Las líneas marcan la frontera de cada provincia. Cada marcador es una gasolinera. Verde: de las más baratas de la comunidad. Rojo: de las más caras. Toca un marcador para ver su nombre y su precio. Arrastra el mapa, usa + y − para acercarte y pulsa 🛰️ para verlo en satélite.</p>
-    <div class="cerca"><button class="btncerca btnir" type="button" data-ir="gas">🧭 ¿Dónde quiero ir?</button><button class="btncerca" id="cercaGas" type="button">📍 Gasolineras cerca de mí</button>
+    <div class="cerca"><button class="btncerca btnir" type="button" data-ir="gas">🧭 ¿Dónde quiero ir?</button><button class="btncerca btnquita" type="button" data-quita="gas" hidden>✕ Quitar ruta</button><button class="btncerca" id="cercaGas" type="button">📍 Gasolineras cerca de mí</button>
       <select id="radioSel" class="radiosel" hidden aria-label="Radio de búsqueda en kilómetros"><option value="" disabled selected>¿A cuántos km? ▾</option><option value="2">A menos de 2 km</option><option value="5">A menos de 5 km</option><option value="10">A menos de 10 km</option><option value="20">A menos de 20 km</option><option value="30">A menos de 30 km</option><option value="50">A menos de 50 km</option></select>
       <a class="btn" id="gmaps" hidden target="_blank" rel="noopener" style="text-decoration:none">🗺️ Ver en Google Maps ↗</a>
       <span class="cercamsg" id="cercaGasMsg" role="status"></span></div>
@@ -476,7 +477,7 @@ __CONSEJOS__
         </div>
       </div>
     </div>
-    <div class="cerca"><button class="btncerca btnir" type="button" data-ir="ev">🧭 ¿Dónde quiero ir?</button><button class="btncerca" id="cercaEv" type="button">📍 Puntos de carga cerca de mí</button><span class="cercamsg" id="cercaEvMsg" role="status"></span></div>
+    <div class="cerca"><button class="btncerca btnir" type="button" data-ir="ev">🧭 ¿Dónde quiero ir?</button><button class="btncerca btnquita" type="button" data-quita="ev" hidden>✕ Quitar ruta</button><button class="btncerca" id="cercaEv" type="button">📍 Puntos de carga cerca de mí</button><span class="cercamsg" id="cercaEvMsg" role="status"></span></div>
     <div class="mapbox">
       <div id="evmap" class="lmap" role="region" aria-label="Mapa de puntos de carga de Castilla y León"></div>
       <div class="zoom"><button id="ezin" aria-label="Acercar">+</button><button id="ezout" aria-label="Alejar">−</button><button id="ezre" aria-label="Ver toda la comunidad" style="font-size:13px">⤢</button><button id="ezsat" class="capa" aria-pressed="false" title="Ver satélite">🛰️</button></div>
@@ -746,7 +747,9 @@ function pintarRutas(){const b=(k,t)=>{const r=R[k];if(!r)return"";const pe=r.ap
     return`<button type="button" class="irruta" data-k="${k}" aria-pressed="${par===k}"><span><b>${t}</b><small>${fmtKm(r.km)}${r.aprox?" en línea recta":" · "+dur(r.min)}</small></span>${pe}</button>`};
   const mismo=R.con&&R.sin&&Math.abs(R.con.km-R.sin.km)<1;
   $("irRutas").innerHTML=R.aprox?b("con","Ruta aproximada"):mismo||!R.sin?b("con","Ruta recomendada"):!R.con?b("sin","Ruta sin peajes"):b("con",R.con.peajeKm>1?"Más rápida (con peajes)":"Más rápida")+b("sin","Sin peajes");
-  $("irRutas").querySelectorAll(".irruta").forEach(x=>x.onclick=()=>{par=x.dataset.k;elegida=null;pintarRutas();lista();(modo==="gas"?gasMap:evMap).setRuta(R[par].c)})}
+  $("irRutas").querySelectorAll(".irruta").forEach(x=>x.onclick=()=>{par=x.dataset.k;elegida=null;pintarRutas();lista();pintaRuta(R[par].c)})}
+function pintaRuta(c){(modo==="gas"?gasMap:evMap).setRuta(c);document.querySelector(`[data-quita="${modo}"]`).hidden=!c}
+document.querySelectorAll(".btnquita").forEach(b=>b.onclick=()=>{(b.dataset.quita==="gas"?gasMap:evMap).setRuta(null);b.hidden=true});
 $("irComb").onchange=$("irEvT").onchange=()=>{if(!$("irRes").hidden){elegida=null;lista()}};
 $("irCalc").onclick=async()=>{if(!O||!D){msg(!O?"Elige el lugar de salida de la lista o pulsa «Mi ubicación».":"Elige el destino de la lista que aparece al escribir.","err");return}
   if(modo==="gas"&&+$("irComb").value!==fuel){const v=$("irComb").value;document.querySelector(`[data-f="${v}"]`).click();$("irComb").value=v}
@@ -755,7 +758,7 @@ $("irCalc").onclick=async()=>{if(!O||!D){msg(!O?"Elige el lugar de salida de la 
   catch(_){const n=40,c=[];for(let i=0;i<=n;i++)c.push([O.lat+(D.lat-O.lat)*i/n,O.lon+(D.lon-O.lon)*i/n]);R={aprox:true,con:{aprox:true,km:distKm(O.lat,O.lon,D.lat,D.lon),c}}}
   finally{$("irCalc").disabled=false}
   par=R.con?"con":"sin";elegida=null;msg("");$("irForm").hidden=true;$("irRes").hidden=false;pintarRutas();lista();
-  (modo==="gas"?gasMap:evMap).setRuta(R[par].c)};
+  pintaRuta(R[par].c)};
 })();
 
 /* Cerca de mí: la ubicación se pide solo al pulsar el botón */
